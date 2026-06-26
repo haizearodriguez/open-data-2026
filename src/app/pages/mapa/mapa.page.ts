@@ -1,123 +1,163 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { IonContent, IonFab, IonFabButton, IonFabList, IonIcon, IonBadge } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { hammerOutline, closeOutline, leafOutline } from 'ionicons/icons';
+import { Subject, firstValueFrom } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { IonContent, IonBadge } from '@ionic/angular/standalone';
 
-import { ChatbotComponent } from "src/app/components/chatbot/chatbot.component";
+import { AsistenteMapaComponent} from 'src/app/components/asistente-mapa/asistente-mapa.component';
 import { ChatData } from 'src/app/core/interfaces/chat-data';
 import { MapaService } from 'src/app/core/services/mapa.service';
 import { MobiliarioService } from 'src/app/core/services/mobiliario.service';
+import { CategoriaElemento } from 'src/app/core/models/mobiliario.model';
+import { AsistenteEvent } from 'src/app/core/interfaces/asistente';
+import { ChatbotComponent } from 'src/app/components/chatbot/chatbot.component';
 
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.page.html',
   styleUrls: ['./mapa.page.scss'],
   standalone: true,
-  imports: [IonBadge, CommonModule, FormsModule, IonContent, IonFab, IonFabButton, IonFabList, IonIcon, ChatbotComponent]
+  imports: [
+    CommonModule,
+    IonContent,
+    IonBadge,
+    ChatbotComponent,
+    AsistenteMapaComponent
+]
 })
 export class MapaPage implements OnInit, OnDestroy {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
-  
+  @ViewChild(AsistenteMapaComponent) asistenteRef!: AsistenteMapaComponent;
+
   datosIniciales: ChatData | null = null;
   coordenadasMatch: { lat: number; lng: number } | null = null;
-  
-  modoPlantar: boolean = false;
-  tipoElementoSeleccionado: 'arbol' | 'banco' | 'farola' | 'papelera' = 'arbol';
-  
-  private clickMapaSub!: Subscription;
+
+  asistenteVisible = false;
+  categoriaActiva: CategoriaElemento | null = null;
+  elementosColocados = 0;
+
+  private ringsActivos: [number, number][][] | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private mapaService: MapaService,
     private mobiliarioService: MobiliarioService
   ) {
-    addIcons({ hammerOutline, closeOutline, leafOutline });
-    
-    // Captura de datos provenientes del buscador/sugerencias si el usuario saltó desde ahí
+
     const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state && navigation.extras.state['coordenadas']) {
+    if (navigation?.extras.state?.['coordenadas']) {
       this.coordenadasMatch = navigation.extras.state['coordenadas'];
     }
   }
 
   ngOnInit() {
-    // Escucha unificada y reactiva de los clics en el mapa gestionada por el servicio
-    this.clickMapaSub = this.mapaService.mapaClick$.subscribe(coords => {
-      if (!this.modoPlantar || !this.datosIniciales) return;
-      
-      // 1. El servicio dibuja de forma instantánea el emoji en el plano virtual
-      this.mapaService.agregarMarcadorMobiliario(coords.lng, coords.lat, this.tipoElementoSeleccionado);
-      
-      // 2. El servicio de datos procesa y estructura el objeto para el borrador de la propuesta
-      this.mobiliarioService.guardarElementoTemporal({
-        tipo: this.tipoElementoSeleccionado,
-        barrio: this.datosIniciales.barrio,
-        coordenadas: { lng: coords.lng, lat: coords.lat },
-        fechaCreacion: new Date()
+    // Recibe los rings del barrio una vez que el mapa los ha calculado
+    this.mapaService.ringsBarrio$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(rings => {
+        this.ringsActivos = rings;
+        this.asistenteVisible = true; // abre el asistente cuando el mapa está listo
       });
+
+    // Clic en el mapa: coloca el marcador si hay categoría activa
+    this.mapaService.mapaClick$
+      .pipe(takeUntil(this.destroy$))
+  .subscribe(coords => {
+    if (!this.datosIniciales || !this.categoriaActiva) return;
+
+    this.mapaService.agregarMarcadorMobiliario(coords.lng, coords.lat, this.categoriaActiva);
+
+    this.mobiliarioService.guardarElementoTemporal({
+      tipo: this.categoriaActiva.tipo,
+      barrio: this.datosIniciales.barrio,
+      coordenadas: { lng: coords.lng, lat: coords.lat },
+      fechaCreacion: new Date()
     });
+
+    this.elementosColocados++;
+    this.categoriaActiva = null;
+    this.asistenteVisible = true; // ← reabre el panel en el paso 3
+    this.asistenteRef?.confirmarColocacion();
+      });
   }
 
-  /**
-   * Recibe el evento final cuando el ciudadano rellena los datos mínimos del chatbot
-   */
   onChatComponentFinished(event: ChatData) {
     this.datosIniciales = event;
-    // Retraso técnico para asegurar que el contenedor #mapContainer se inyecte en el DOM por el *ngIf
     setTimeout(() => { this.inicializarMapaEnBarrio(event.barrio); }, 100);
   }
 
-  /**
-   * Carga la configuración geográfica inicial del barrio seleccionado y arranca la escena
-   */
   async inicializarMapaEnBarrio(barrioSeleccionado: string) {
-    let centroCoordenadas: [number, number] = [-2.67268, 42.84695]; 
+    let centroCoordenadas: [number, number] = [-2.67268, 42.84695];
     let nivelZoom = 13.5;
 
     try {
-      const respuesta = await fetch('assets/data/barrios-vitoria.json');
-      const geojsonBarrios = await respuesta.json();
-      const barrioEncontrado = geojsonBarrios.features.find((f: any) => 
-        f.properties?.nombre?.toLowerCase() === barrioSeleccionado.toLowerCase()
+      const geojsonBarrios = await firstValueFrom(this.mapaService.getBarrios());
+      const barrioEncontrado = geojsonBarrios.features.find((f: any) =>
+        f.attributes?.TEXTO?.toLowerCase() === barrioSeleccionado.toLowerCase()
       );
-
-      if (barrioEncontrado && barrioEncontrado.properties.centro) {
-        centroCoordenadas = barrioEncontrado.properties.centro;
-        nivelZoom = barrioEncontrado.properties.zoom || 15.5;
+      if (barrioEncontrado && (barrioEncontrado as any).properties?.centro) {
+        centroCoordenadas = (barrioEncontrado as any).properties.centro;
+        nivelZoom = (barrioEncontrado as any).properties.zoom || 15.5;
       }
-    } catch (error) { 
-      console.error('Error al leer el asset de barrios desde el componente:', error); 
+    } catch (error) {
+      console.error('Error al leer el asset de barrios:', error);
     }
 
-    // Prioridad absoluta a coordenadas si se viene de una navegación directa guiada
     if (this.coordenadasMatch) {
       centroCoordenadas = [this.coordenadasMatch.lng, this.coordenadasMatch.lat];
       nivelZoom = 16.5;
     }
 
-    // Delegamos la creación del mapa e inyección de capas al MapaService
-    this.mapaService.construirMapa(this.mapContainer.nativeElement, centroCoordenadas, nivelZoom, barrioSeleccionado);
+    this.mapaService.construirMapa(
+      this.mapContainer.nativeElement,
+      centroCoordenadas,
+      nivelZoom,
+      barrioSeleccionado
+    );
 
     if (this.coordenadasMatch) {
       this.mapaService.agregarMarcadorEstatico(this.coordenadasMatch.lng, this.coordenadasMatch.lat);
     }
   }
 
-  conmutarModoPlantar() { 
-    this.modoPlantar = !this.modoPlantar; 
+
+  onAsistenteEvento(evento: AsistenteEvent): void {
+    if (evento.tipo === 'categoria-elegida' && evento.categoria) {
+      this.categoriaActiva = evento.categoria;
+
+      // Carga la capa de datos de la categoría
+      if (this.ringsActivos && this.datosIniciales) {
+        this.mapaService.cargarCapaParaCategoria(
+          evento.categoria.tipo,
+          this.datosIniciales.barrio,
+          this.ringsActivos
+        );
+      }
+    }
+
+    if (evento.tipo === 'accion-final') {
+      if (evento.accion === 'eliminar') {
+        // TODO: implementar modo eliminación
+        console.info('Modo eliminar — pendiente de implementar');
+      }
+      if (evento.accion === 'enviar') {
+        // TODO: navegar a pantalla de resumen/envío
+        console.info('Enviar datos — pendiente de implementar');
+        this.asistenteVisible = false;
+      }
+    }
   }
 
-  seleccionarHerramienta(tipo: 'arbol' | 'banco' | 'farola' | 'papelera') { 
-    this.modoPlantar = true; 
-    this.tipoElementoSeleccionado = tipo; 
+  onAsistenteCerrado(): void {
+    this.asistenteVisible = false;
+    this.categoriaActiva = null;
   }
 
   ngOnDestroy() {
-    if (this.clickMapaSub) this.clickMapaSub.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
     this.mapaService.destruirMapa();
   }
 }

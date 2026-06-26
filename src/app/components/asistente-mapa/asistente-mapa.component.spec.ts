@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { ChatbotComponent } from './chatbot.component';
+import { AsistenteMapaComponent } from './asistente-mapa.component';
 
-describe('ChatbotComponent', () => {
-  let component: ChatbotComponent;
-  let fixture: ComponentFixture<ChatbotComponent>;
+describe('AsistenteMapaComponent', () => {
+  let component: AsistenteMapaComponent;
+  let fixture: ComponentFixture<AsistenteMapaComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ChatbotComponent ],
+      declarations: [ AsistenteMapaComponent ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ChatbotComponent);
+    fixture = TestBed.createComponent(AsistenteMapaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));
