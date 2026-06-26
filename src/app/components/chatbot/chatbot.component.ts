@@ -17,7 +17,6 @@ export class ChatbotComponent implements OnInit {
   step: 'barrio' | 'fin' = 'barrio';
 
   selectedBarrio: string = '';
-  selectedNecesidad: string = '';
 
   barrios: string[] = [];
 

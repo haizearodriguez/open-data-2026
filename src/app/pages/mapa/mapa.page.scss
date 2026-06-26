@@ -29,12 +29,6 @@ ion-content {
   box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
 }
 
-app-popup-chatbot {
-  position: absolute;
-  z-index: 9999 !important; 
-  pointer-events: auto; /* Fuerza a que responda a los clicks */
-}
-
 .btn-reabrir-asistente {
   position: absolute;
   bottom: 24px;

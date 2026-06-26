@@ -97,10 +97,6 @@ export class MapaPage implements OnInit, OnDestroy {
       const barrioEncontrado = geojsonBarrios.features.find((f: any) =>
         f.attributes?.TEXTO?.toLowerCase() === barrioSeleccionado.toLowerCase()
       );
-      if (barrioEncontrado && (barrioEncontrado as any).properties?.centro) {
-        centroCoordenadas = (barrioEncontrado as any).properties.centro;
-        nivelZoom = (barrioEncontrado as any).properties.zoom || 15.5;
-      }
     } catch (error) {
       console.error('Error al leer el asset de barrios:', error);
     }
