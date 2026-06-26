@@ -1,0 +1,25 @@
+<div class="chat-container">
+  <ion-list lines="none" class="message-list">
+    <div *ngFor="let msg of messages" [ngClass]="['message-wrapper', msg.sender]">
+      <div class="bubble">
+        {{ msg.text }}
+      </div>
+    </div>
+  </ion-list>
+
+  <div class="options-container">
+    
+    <div *ngIf="step === 'barrio'" class="options-grid">
+      <ion-button *ngFor="let b of barrios" (click)="seleccionarBarrio(b)" fill="outline" shape="round" size="small">
+        {{ b }}
+      </ion-button>
+    </div>
+
+    <div *ngIf="step === 'necesidad'" class="options-grid">
+      <ion-button *ngFor="let n of necesidades" (click)="seleccionarNecesidad(n)" color="success" fill="solid" shape="round" size="small">
+        {{ n }}
+      </ion-button>
+    </div>
+    
+  </div>
+</div>

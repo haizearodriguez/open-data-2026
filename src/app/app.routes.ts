@@ -2,13 +2,9 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'mapa',
-    redirectTo: 'onboarding',
+    path: '',
+    redirectTo: 'mapa',
     pathMatch: 'full',
-  },
-  {
-    path: 'chat',
-    loadComponent: () => import('./pages/chat/chat.page').then( m => m.ChatPage)
   },
   {
     path: 'mapa',
