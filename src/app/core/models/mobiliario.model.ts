@@ -1,7 +1,6 @@
 export type TipoElemento =
   | 'desperfecto'
-  | 'obras'
-  | 'ocupacion'
+  | 'fuente'
   | 'zona-verde'
   | 'mobiliario'
   | 'alumbrado'
@@ -22,8 +21,7 @@ export interface CategoriaElemento {
 export const CATEGORIAS_ELEMENTOS: CategoriaElemento[] = [
   // Espacio público
   { tipo: 'desperfecto',      etiqueta: 'Desperfectos en vía pública', emoji: '🚧', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=12', grupo: 'espacio-publico' },
-  { tipo: 'obras',            etiqueta: 'Obras en vía pública',        emoji: '🏗️', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=14', grupo: 'espacio-publico' },
-  { tipo: 'ocupacion',        etiqueta: 'Ocupación de la vía pública', emoji: '🪧', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=15', grupo: 'espacio-publico' },
+  { tipo: 'fuente',        etiqueta: 'Fuentes de agua potable', emoji: '⛲', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=17', grupo: 'espacio-publico' },
   { tipo: 'zona-verde',       etiqueta: 'Zonas verdes',                emoji: '🌳', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=16', grupo: 'espacio-publico' },
   { tipo: 'mobiliario',       etiqueta: 'Mobiliario urbano',           emoji: '🪑', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=17', grupo: 'espacio-publico' },
   { tipo: 'alumbrado',        etiqueta: 'Alumbrado público',           emoji: '💡', url: 'https://www.vitoria-gasteiz.org/wb021/was/areaAction.do?idioma=es&accion=areas&claveArea=18', grupo: 'espacio-publico' },

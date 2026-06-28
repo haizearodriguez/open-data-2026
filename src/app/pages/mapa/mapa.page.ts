@@ -140,8 +140,8 @@ export class MapaPage implements OnInit, OnDestroy {
       }
       if (evento.accion === 'enviar') {
         // TODO: navegar a pantalla de resumen/envío
-        console.info('Enviar datos — pendiente de implementar');
         this.asistenteVisible = false;
+        this.router.navigate(['/resumen']);
       }
     }
   }

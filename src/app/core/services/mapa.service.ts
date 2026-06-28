@@ -144,8 +144,7 @@ export class MapaService {
         break;
 
       case 'desperfecto':
-      case 'obras':
-      case 'ocupacion':
+      case 'fuente':
       case 'accesibilidad':
       case 'otros-via':
       case 'limpieza':

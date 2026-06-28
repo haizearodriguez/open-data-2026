@@ -1,33 +1,38 @@
 import { Injectable } from '@angular/core';
-import { ElementoMobiliario } from '../models/mobiliario.model';
+import { ElementoMobiliario, CATEGORIAS_ELEMENTOS } from '../models/mobiliario.model';
+import { SupabaseService } from './supabase.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class MobiliarioService {
-  // Lista temporal en memoria de la propuesta actual del ciudadano
   private elementosPropuestos: ElementoMobiliario[] = [];
 
-  constructor() {}
+  constructor(private supabaseService: SupabaseService) {}
 
   /**
-   * Registra temporalmente un elemento plantado en el mapa
+   * Registra un elemento en memoria y lo persiste en Supabase
    */
-  public guardarElementoTemporal(elemento: ElementoMobiliario): void {
+  public async guardarElementoTemporal(elemento: ElementoMobiliario): Promise<void> {
     this.elementosPropuestos.push(elemento);
-    console.log('Mobiliario registrado en la propuesta actual:', this.elementosPropuestos);
+
+    // Busca emoji y etiqueta desde el modelo para guardarlos en Supabase
+    const categoria = CATEGORIAS_ELEMENTOS.find(c => c.tipo === elemento.tipo);
+    if (categoria) {
+      try {
+        await this.supabaseService.guardarSugerencia(
+          elemento,
+          categoria.emoji,
+          categoria.etiqueta
+        );
+      } catch (error) {
+        console.error('Error al guardar sugerencia en Supabase:', error);
+      }
+    }
   }
 
-  /**
-   * Devuelve todos los elementos que el usuario ha diseñado para la pantalla de Resumen
-   */
   public obtenerPropuestaActual(): ElementoMobiliario[] {
     return this.elementosPropuestos;
   }
 
-  /**
-   * Limpia el borrador (por si cancela o finaliza el envío)
-   */
   public limpiarPropuesta(): void {
     this.elementosPropuestos = [];
   }

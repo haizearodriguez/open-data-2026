@@ -27,6 +27,7 @@
     "@capacitor/keyboard": "8.0.3",
     "@capacitor/status-bar": "8.0.2",
     "@ionic/angular": "^8.0.0",
+    "@supabase/supabase-js": "^2.108.2",
     "cesium": "^1.142.0",
     "ionicons": "^7.0.0",
     "maplibre-gl": "^5.24.0",

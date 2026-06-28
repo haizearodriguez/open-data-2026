@@ -1,0 +1,121 @@
+<ion-content [fullscreen]="true" class="resumen-content">
+  <div class="resumen-wrapper">
+
+    <!-- ── CONFIRMACIÓN ───────────────────────────────────────── -->
+    <div *ngIf="referencia" class="confirmacion">
+      <div class="confirmacion-icono">✅</div>
+      <h1>¡Propuesta enviada!</h1>
+      <p>Tu propuesta para <strong>{{ barrio }}</strong> ha sido enviada al Ayuntamiento de Vitoria-Gasteiz y recibirás una confirmación en tu email.</p>
+
+      <div class="referencia-box">
+        <p class="ref-label">Número de referencia</p>
+        <p class="ref-numero">{{ referencia }}</p>
+      </div>
+
+      <button class="btn-primary" (click)="volver()">Volver al mapa</button>
+    </div>
+
+    <!-- ── FORMULARIO ─────────────────────────────────────────── -->
+    <ng-container *ngIf="!referencia">
+
+      <!-- Cabecera -->
+      <div class="resumen-header">
+        <button class="btn-back" (click)="volver()">←</button>
+        <div>
+          <h1>Tu propuesta</h1>
+          <p class="subtitulo">{{ barrio }} · {{ elementos.length }} elemento{{ elementos.length > 1 ? 's' : '' }}</p>
+        </div>
+      </div>
+
+      <!-- Lista de elementos -->
+      <div class="card">
+        <h2>Elementos seleccionados</h2>
+        <div class="elemento-lista">
+          <div *ngFor="let e of elementos" class="elemento-item">
+            <span class="elem-emoji">{{ getEmoji(e.tipo) }}</span>
+            <div class="elem-info">
+              <p class="elem-tipo">{{ getEtiqueta(e.tipo) }}</p>
+              <p class="elem-coords">{{ e.coordenadas.lat.toFixed(4) }}, {{ e.coordenadas.lng.toFixed(4) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Título y descripción con IA -->
+      <div class="card">
+        <div class="card-title-row">
+          <h2>Asunto de la solicitud</h2>
+          <button class="btn-ia" (click)="generarConIa()" [disabled]="generando">
+            <ion-spinner *ngIf="generando" name="crescent" style="width:14px;height:14px;"></ion-spinner>
+            <span *ngIf="!generando">✨ Generar con IA</span>
+            <span *ngIf="generando">Generando...</span>
+          </button>
+        </div>
+
+        <div *ngIf="errorIa" class="error-msg small">⚠️ {{ errorIa }}</div>
+
+        <div class="form-group">
+          <label>Título del asunto <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="titulo"
+            placeholder="Ej: Solicitud de mejora de alumbrado en Zabalgana"
+            maxlength="80">
+          <span class="char-count">{{ titulo.length }}/80</span>
+        </div>
+
+        <div class="form-group">
+          <label>Detalle del asunto <span class="req">*</span></label>
+          <textarea
+            [(ngModel)]="descripcion"
+            rows="5"
+            placeholder="Describe la situación y lo que solicitas al ayuntamiento..."></textarea>
+        </div>
+      </div>
+
+      <!-- Formulario de identificación -->
+      <div class="card">
+        <h2>Tus datos</h2>
+        <p class="form-nota">Necesarios para identificarte ante el Ayuntamiento. No se compartirán públicamente.</p>
+
+        <div class="form-group">
+          <label>Nombre <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="nombre" placeholder="Ej: Haizea" autocomplete="given-name">
+        </div>
+
+        <div class="form-group">
+          <label>Primer apellido <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="primerApellido" placeholder="Ej: García" autocomplete="family-name">
+        </div>
+
+        <div class="form-group">
+          <label>Segundo apellido</label>
+          <input type="text" [(ngModel)]="segundoApellido" placeholder="Ej: López">
+        </div>
+
+        <div class="form-group">
+          <label>DNI / NIE <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="dni" placeholder="Ej: 00000000A" maxlength="9" style="text-transform:uppercase">
+        </div>
+
+        <div class="form-group">
+          <label>Email <span class="req">*</span></label>
+          <input type="email" [(ngModel)]="emailCiudadano" placeholder="para recibir confirmación" autocomplete="email">
+        </div>
+      </div>
+
+      <!-- Error envío -->
+      <div *ngIf="error" class="error-msg">⚠️ {{ error }}</div>
+
+      <!-- Botón enviar -->
+      <button
+        class="btn-primary"
+        [disabled]="!formularioValido() || enviando"
+        (click)="enviar()">
+        <ion-spinner *ngIf="enviando" name="crescent" style="width:18px;height:18px;margin-right:8px;"></ion-spinner>
+        {{ enviando ? 'Enviando...' : '📤 Enviar al Ayuntamiento' }}
+      </button>
+
+    </ng-container>
+  </div>
+</ion-content>
