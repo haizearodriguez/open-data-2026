@@ -1,90 +1,21 @@
-<div class="asistente-overlay"  [hidden]="paso === 'esperando-clic'" (click)="onCerrar()"></div>
-
-<div class="asistente-panel" [hidden]="paso === 'esperando-clic'">
-
+<!-- Sin overlay -->
+<div class="asistente-panel">
   <div class="asistente-header">
     <button class="btn-cerrar" (click)="onCerrar()">✕</button>
   </div>
-
-  <!-- ── PASO 1: elegir categoría ─────────────────────────── -->
-  <div *ngIf="paso === 'elegir-categoria'" class="asistente-body">
-
+  <div class="asistente-body centered">
     <div class="mensaje-bot">
       <span class="avatar">🤖</span>
-      <p>¿Qué quieres añadir al barrio?</p>
+      <div>
+        <p *ngIf="categoriaActiva">
+          Has elegido <strong>{{ categoriaActiva.emoji }} {{ categoriaActiva.etiqueta }}</strong>.
+        </p>
+        <p>Toca el mapa en el lugar exacto donde quieres colocarlo.</p>
+      </div>
     </div>
-
-    <p class="grupo-titulo">🏙️ Espacio público</p>
-    <div class="categorias-grid">
-      <button
-        *ngFor="let cat of categoriasEspacioPublico"
-        class="cat-btn"
-        (click)="elegirCategoria(cat)">
-        <span class="cat-emoji">{{ cat.emoji }}</span>
-        <span class="cat-label">{{ cat.etiqueta }}</span>
-      </button>
-    </div>
-
-    <p class="grupo-titulo">🌿 Medio ambiente</p>
-    <div class="categorias-grid">
-      <button
-        *ngFor="let cat of categoriasMedioambiente"
-        class="cat-btn"
-        (click)="elegirCategoria(cat)">
-        <span class="cat-emoji">{{ cat.emoji }}</span>
-        <span class="cat-label">{{ cat.etiqueta }}</span>
-      </button>
-    </div>
-
-  </div>
-
-  <!-- ── PASO 2: esperando clic en el mapa ────────────────── -->
-  <div *ngIf="paso === 'esperando-clic'" class="asistente-body centered">
-
-    <div class="mensaje-bot">
-      <span class="avatar">🤖</span>
-      <p>Has elegido <strong>{{ categoriaElegida?.etiqueta }}</strong>.</p>
-    </div>
-
     <div class="instruccion-clic">
       <span class="icono-tap">👆</span>
-      <p>Ahora <strong>toca el mapa</strong> en el lugar donde quieres colocarlo.</p>
+      <p><strong>Toca el mapa</strong> para colocar el elemento.</p>
     </div>
-
-    <button class="btn-secundario" (click)="paso = 'elegir-categoria'">
-      ← Cambiar categoría
-    </button>
-
   </div>
-
-  <!-- ── PASO 3: ¿qué más? ─────────────────────────────────── -->
-  <div *ngIf="paso === 'que-mas'" class="asistente-body centered">
-
-    <div class="mensaje-bot">
-      <span class="avatar">🤖</span>
-      <p>¡Listo! {{ categoriaElegida?.emoji }} colocado correctamente.</p>
-      <p *ngIf="elementosColocados > 0" class="contador">
-        Llevas <strong>{{ elementosColocados }}</strong> elemento{{ elementosColocados === 1 ? '' : 's' }} añadido{{ elementosColocados === 1 ? '' : 's' }}.
-      </p>
-    </div>
-
-    <p class="pregunta-accion">¿Qué quieres hacer ahora?</p>
-
-    <div class="acciones-grid">
-      <button class="accion-btn verde" (click)="accionFinal('añadir-otro')">
-        <span>➕</span>
-        <span>Añadir otro</span>
-      </button>
-      <button class="accion-btn rojo" (click)="accionFinal('eliminar')">
-        <span>🗑️</span>
-        <span>Eliminar uno</span>
-      </button>
-      <button class="accion-btn azul" (click)="accionFinal('enviar')">
-        <span>📤</span>
-        <span>Enviar datos</span>
-      </button>
-    </div>
-
-  </div>
-
 </div>

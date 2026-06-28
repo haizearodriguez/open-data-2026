@@ -1,17 +1,16 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subject, firstValueFrom } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { IonContent, IonBadge } from '@ionic/angular/standalone';
+import { IonContent, IonBadge, MenuController } from '@ionic/angular/standalone';
 
-import { AsistenteMapaComponent} from 'src/app/components/asistente-mapa/asistente-mapa.component';
+import { AsistenteMapaComponent } from 'src/app/components/asistente-mapa/asistente-mapa.component';
+import { SelectorRapidoComponent } from 'src/app/components/selector-rapido/selector-rapido.component';
 import { ChatData } from 'src/app/core/interfaces/chat-data';
 import { MapaService } from 'src/app/core/services/mapa.service';
 import { MobiliarioService } from 'src/app/core/services/mobiliario.service';
 import { CategoriaElemento } from 'src/app/core/models/mobiliario.model';
-import { AsistenteEvent } from 'src/app/core/interfaces/asistente';
-import { ChatbotComponent } from 'src/app/components/chatbot/chatbot.component';
 
 @Component({
   selector: 'app-mapa',
@@ -19,14 +18,11 @@ import { ChatbotComponent } from 'src/app/components/chatbot/chatbot.component';
   styleUrls: ['./mapa.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
-    IonContent,
-    IonBadge,
-    ChatbotComponent,
-    AsistenteMapaComponent
-]
+    CommonModule, IonContent, IonBadge,
+    AsistenteMapaComponent, SelectorRapidoComponent
+  ]
 })
-export class MapaPage implements OnInit, OnDestroy {
+export class MapaPage implements OnDestroy {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
   @ViewChild(AsistenteMapaComponent) asistenteRef!: AsistenteMapaComponent;
 
@@ -34,6 +30,8 @@ export class MapaPage implements OnInit, OnDestroy {
   coordenadasMatch: { lat: number; lng: number } | null = null;
 
   asistenteVisible = false;
+  selectorRapidoVisible = false;
+  modoEliminarActivo = false;
   categoriaActiva: CategoriaElemento | null = null;
   elementosColocados = 0;
 
@@ -43,69 +41,91 @@ export class MapaPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private mapaService: MapaService,
-    private mobiliarioService: MobiliarioService
-  ) {
+    private mobiliarioService: MobiliarioService,
+    private menuCtrl: MenuController
+  ) {}
 
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state?.['coordenadas']) {
-      this.coordenadasMatch = navigation.extras.state['coordenadas'];
+  async ionViewDidEnter(): Promise<void> {
+    const state = history.state;
+
+    // Resetea todo el estado
+    this.datosIniciales = null;
+    this.categoriaActiva = null;
+    this.coordenadasMatch = null;
+    this.elementosColocados = 0;
+    this.asistenteVisible = false;
+    this.selectorRapidoVisible = false;
+    this.modoEliminarActivo = false;
+    this.ringsActivos = null;
+
+    if (state?.barrio) {
+      this.datosIniciales = { barrio: state.barrio, modo: state.modo ?? 'manual' };
+      if (state.categoria) this.categoriaActiva = state.categoria;
     }
-  }
 
-  ngOnInit() {
-    // Recibe los rings del barrio una vez que el mapa los ha calculado
+    if (state?.coordenadas) this.coordenadasMatch = state.coordenadas;
+    if (!this.datosIniciales || !this.mapContainer) return;
+
+    // Cancela suscripciones anteriores
+    this.destroy$.next();
+    this.destroy$ = new Subject<void>();
+
+    // 1. PRIMERO construir el mapa — esto recrea los Subjects internos
+    await this.inicializarMapaEnBarrio(this.datosIniciales.barrio);
+
+    // 2. DESPUÉS suscribirse a los Subjects nuevos
     this.mapaService.ringsBarrio$
       .pipe(takeUntil(this.destroy$))
       .subscribe(rings => {
         this.ringsActivos = rings;
-        this.asistenteVisible = true; // abre el asistente cuando el mapa está listo
+        this.asistenteVisible = true;
+        if (this.categoriaActiva && this.datosIniciales) {
+          this.mapaService.cargarCapaParaCategoria(
+            this.categoriaActiva.tipo,
+            this.datosIniciales.barrio,
+            rings
+          );
+        }
       });
 
-    // Clic en el mapa: coloca el marcador si hay categoría activa
     this.mapaService.mapaClick$
       .pipe(takeUntil(this.destroy$))
-  .subscribe(coords => {
-    if (!this.datosIniciales || !this.categoriaActiva) return;
+      .subscribe(coords => {
+        console.log('SUSCRIPCION CLIC', {
+          categoriaActiva: this.categoriaActiva?.tipo,
+          datosIniciales: this.datosIniciales?.barrio
+        });
+        if (!this.datosIniciales || !this.categoriaActiva || this.modoEliminarActivo) return;
 
-    this.mapaService.agregarMarcadorMobiliario(coords.lng, coords.lat, this.categoriaActiva);
+        const marcadorId = this.mapaService.agregarMarcadorMobiliario(
+          coords.lng, coords.lat, this.categoriaActiva,
+          (id) => this.onMarcadorEliminado(id)
+        );
 
-    this.mobiliarioService.guardarElementoTemporal({
-      tipo: this.categoriaActiva.tipo,
-      barrio: this.datosIniciales.barrio,
-      coordenadas: { lng: coords.lng, lat: coords.lat },
-      fechaCreacion: new Date()
-    });
+        this.mobiliarioService.guardarElementoTemporal({
+          id: marcadorId,
+          tipo: this.categoriaActiva.tipo,
+          barrio: this.datosIniciales.barrio,
+          coordenadas: { lng: coords.lng, lat: coords.lat },
+          fechaCreacion: new Date()
+        });
 
-    this.elementosColocados++;
-    this.categoriaActiva = null;
-    this.asistenteVisible = true; // ← reabre el panel en el paso 3
-    this.asistenteRef?.confirmarColocacion();
+        this.elementosColocados++;
+        this.categoriaActiva = null;
+        this.asistenteVisible = false;
       });
   }
 
-  onChatComponentFinished(event: ChatData) {
-    this.datosIniciales = event;
-    setTimeout(() => { this.inicializarMapaEnBarrio(event.barrio); }, 100);
-  }
-
-  async inicializarMapaEnBarrio(barrioSeleccionado: string) {
+  async inicializarMapaEnBarrio(barrioSeleccionado: string): Promise<void> {
     let centroCoordenadas: [number, number] = [-2.67268, 42.84695];
     let nivelZoom = 13.5;
-
-    try {
-      const geojsonBarrios = await firstValueFrom(this.mapaService.getBarrios());
-      const barrioEncontrado = geojsonBarrios.features.find((f: any) =>
-        f.attributes?.TEXTO?.toLowerCase() === barrioSeleccionado.toLowerCase()
-      );
-    } catch (error) {
-      console.error('Error al leer el asset de barrios:', error);
-    }
 
     if (this.coordenadasMatch) {
       centroCoordenadas = [this.coordenadasMatch.lng, this.coordenadasMatch.lat];
       nivelZoom = 16.5;
     }
 
+    // construirMapa recrea los Subjects — suscribirse DESPUÉS de esta llamada
     this.mapaService.construirMapa(
       this.mapContainer.nativeElement,
       centroCoordenadas,
@@ -118,37 +138,48 @@ export class MapaPage implements OnInit, OnDestroy {
     }
   }
 
+  onAsistenteCerrado(): void {
+    this.asistenteVisible = false;
+    // NO borra categoriaActiva — el usuario cierra el panel para tocar el mapa
+  }
 
-  onAsistenteEvento(evento: AsistenteEvent): void {
-    if (evento.tipo === 'categoria-elegida' && evento.categoria) {
-      this.categoriaActiva = evento.categoria;
+  onCategoriaRapidaElegida(cat: CategoriaElemento): void {
+    this.categoriaActiva = cat;
+    this.selectorRapidoVisible = false;
+    this.asistenteVisible = true;
+    this.asistenteRef?.reiniciarParaNuevo();
 
-      // Carga la capa de datos de la categoría
-      if (this.ringsActivos && this.datosIniciales) {
-        this.mapaService.cargarCapaParaCategoria(
-          evento.categoria.tipo,
-          this.datosIniciales.barrio,
-          this.ringsActivos
-        );
-      }
-    }
-
-    if (evento.tipo === 'accion-final') {
-      if (evento.accion === 'eliminar') {
-        // TODO: implementar modo eliminación
-        console.info('Modo eliminar — pendiente de implementar');
-      }
-      if (evento.accion === 'enviar') {
-        // TODO: navegar a pantalla de resumen/envío
-        this.asistenteVisible = false;
-        this.router.navigate(['/resumen']);
-      }
+    if (this.ringsActivos && this.datosIniciales) {
+      this.mapaService.cargarCapaParaCategoria(cat.tipo, this.datosIniciales.barrio, this.ringsActivos);
     }
   }
 
-  onAsistenteCerrado(): void {
-    this.asistenteVisible = false;
-    this.categoriaActiva = null;
+  onEliminar(): void {
+    this.modoEliminarActivo = true;
+    this.mapaService.activarModoEliminar();
+  }
+
+  onMarcadorEliminado(id: string): void {
+    this.mapaService.eliminarMarcadorPorId(id);
+    this.mobiliarioService.eliminarElementoPorId(id);
+    this.elementosColocados = this.mapaService.getTotalMarcadores();
+    this.modoEliminarActivo = false;
+    this.mapaService.desactivarModoEliminar();
+  }
+
+  onEnviar(): void {
+    this.modoEliminarActivo = false;
+    this.mapaService.desactivarModoEliminar();
+    this.router.navigate(['/resumen']);
+  }
+
+  abrirMenu(): void {
+    this.menuCtrl.open();
+  }
+
+  ionViewWillLeave(): void {
+    this.destroy$.next();
+    this.mapaService.destruirMapa();
   }
 
   ngOnDestroy() {

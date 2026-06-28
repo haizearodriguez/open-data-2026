@@ -1,0 +1,26 @@
+<div class="overlay" (click)="onCerrar()"></div>
+
+<div class="panel">
+  <div class="panel-header">
+    <p class="panel-titulo">¿Qué quieres añadir?</p>
+    <button class="btn-cerrar" (click)="onCerrar()">✕</button>
+  </div>
+
+  <div class="panel-body">
+    <p class="grupo-titulo">🏙️ Espacio público</p>
+    <div class="cat-grid">
+      <button *ngFor="let cat of categoriasEspacioPublico" class="cat-btn" (click)="seleccionar(cat)">
+        <span class="cat-emoji">{{ cat.emoji }}</span>
+        <span class="cat-label">{{ cat.etiqueta }}</span>
+      </button>
+    </div>
+
+    <p class="grupo-titulo">🌿 Medio ambiente</p>
+    <div class="cat-grid">
+      <button *ngFor="let cat of categoriasMedioambiente" class="cat-btn" (click)="seleccionar(cat)">
+        <span class="cat-emoji">{{ cat.emoji }}</span>
+        <span class="cat-label">{{ cat.etiqueta }}</span>
+      </button>
+    </div>
+  </div>
+</div>

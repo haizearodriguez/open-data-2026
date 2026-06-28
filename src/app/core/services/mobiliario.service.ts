@@ -4,36 +4,34 @@ import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class MobiliarioService {
-  private elementosPropuestos: ElementoMobiliario[] = [];
+  // Map para buscar por ID eficientemente
+  private elementosMap = new Map<string, ElementoMobiliario>();
 
   constructor(private supabaseService: SupabaseService) {}
 
-  /**
-   * Registra un elemento en memoria y lo persiste en Supabase
-   */
   public async guardarElementoTemporal(elemento: ElementoMobiliario): Promise<void> {
-    this.elementosPropuestos.push(elemento);
+    const id = elemento.id ?? `elem-${Date.now()}`;
+    this.elementosMap.set(id, { ...elemento, id });
 
-    // Busca emoji y etiqueta desde el modelo para guardarlos en Supabase
     const categoria = CATEGORIAS_ELEMENTOS.find(c => c.tipo === elemento.tipo);
     if (categoria) {
       try {
-        await this.supabaseService.guardarSugerencia(
-          elemento,
-          categoria.emoji,
-          categoria.etiqueta
-        );
+        await this.supabaseService.guardarSugerencia(elemento, categoria.emoji, categoria.etiqueta);
       } catch (error) {
         console.error('Error al guardar sugerencia en Supabase:', error);
       }
     }
   }
 
+  public eliminarElementoPorId(id: string): void {
+    this.elementosMap.delete(id);
+  }
+
   public obtenerPropuestaActual(): ElementoMobiliario[] {
-    return this.elementosPropuestos;
+    return Array.from(this.elementosMap.values());
   }
 
   public limpiarPropuesta(): void {
-    this.elementosPropuestos = [];
+    this.elementosMap.clear();
   }
 }

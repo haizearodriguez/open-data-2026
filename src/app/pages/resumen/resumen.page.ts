@@ -19,18 +19,14 @@ export class ResumenPage implements OnInit {
   elementos: ElementoMobiliario[] = [];
   barrio = '';
 
-  // Formulario ciudadano
   nombre = '';
   primerApellido = '';
   segundoApellido = '';
   dni = '';
   emailCiudadano = '';
-
-  // Campos de texto editables
   titulo = '';
   descripcion = '';
 
-  // Estado
   enviando = false;
   generando = false;
   error = '';
@@ -47,7 +43,6 @@ export class ResumenPage implements OnInit {
     this.elementos = this.mobiliarioService.obtenerPropuestaActual();
     this.barrio = this.elementos[0]?.barrio ?? '';
 
-    // Título por defecto basado en los elementos
     const tipos = [...new Set(this.elementos.map(e => this.getEtiqueta(e.tipo)))];
     this.titulo = `Solicitud de mejora en ${this.barrio}: ${tipos.join(', ')}`;
     this.descripcion = '';
@@ -87,7 +82,6 @@ export class ResumenPage implements OnInit {
 
     try {
       const url = `${this.supabaseService.getFunctionUrl()}/generar-texto`;
-
       const elementosPayload = this.elementos.map(e => ({
         etiqueta: this.getEtiqueta(e.tipo),
         emoji: this.getEmoji(e.tipo),
@@ -124,7 +118,6 @@ export class ResumenPage implements OnInit {
     this.error = '';
 
     const referencia = this.generarReferencia();
-
     const elementosConEmoji = this.elementos.map(e => ({
       tipo: e.tipo,
       etiqueta: this.getEtiqueta(e.tipo),
@@ -135,7 +128,6 @@ export class ResumenPage implements OnInit {
 
     try {
       const url = `${this.supabaseService.getFunctionUrl()}/enviar-propuesta`;
-
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -171,6 +163,7 @@ export class ResumenPage implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/mapa']);
+    // Usa history.back() para volver con el state correcto
+    history.back();
   }
 }

@@ -1,42 +1,59 @@
 <ion-content [fullscreen]="true">
 
-  <!-- Chatbot inicial de selección de barrio -->
-  <app-chatbot
-    *ngIf="!datosIniciales"
-    (chatFinished)="onChatComponentFinished($event)">
-  </app-chatbot>
-
-  <!-- Vista del mapa -->
-  <div *ngIf="datosIniciales" class="map-container-wrapper" style="width: 100%; height: 100%; position: relative;">
+  <div class="map-container-wrapper">
 
     <div #mapContainer id="map" style="width: 100%; height: 100%;"></div>
 
-    <!-- Badge informativo -->
-    <ion-badge color="secondary" class="context-badge">
+    <!-- Badge barrio -->
+    <ion-badge *ngIf="datosIniciales" color="secondary" class="context-badge">
       {{ datosIniciales.barrio }}
     </ion-badge>
 
-    <!-- Aviso modo colocación (paso 2 del asistente) -->
-    <div *ngIf="categoriaActiva" class="aviso-edicion">
+    <!-- Botón menú -->
+    <button class="btn-menu" (click)="abrirMenu()">☰</button>
+
+    <!-- Aviso modo colocación -->
+    <div *ngIf="categoriaActiva && !asistenteVisible" class="aviso-edicion">
       {{ categoriaActiva.emoji }} Toca el mapa para colocar: {{ categoriaActiva.etiqueta }}
     </div>
 
-    <!-- Asistente paso a paso — aparece automáticamente -->
-    <app-asistente-mapa
-  [hidden]="!asistenteVisible"
-  [elementosColocados]="elementosColocados"
-  (asistenteEvento)="onAsistenteEvento($event)"
-  (esperandoClic)="asistenteVisible = false"
-  (cerrar)="onAsistenteCerrado()">
-</app-asistente-mapa>
+    <!-- Aviso modo eliminación -->
+    <div *ngIf="modoEliminarActivo" class="aviso-eliminar">
+      🗑️ Toca el elemento que quieres eliminar
+    </div>
 
-<!-- Botón para reabrir el asistente cuando está cerrado -->
-<button
-  *ngIf="!asistenteVisible"
-  class="btn-reabrir-asistente"
-  (click)="asistenteVisible = true">
-  🤖
-</button>
+    <!-- Asistente -->
+    <app-asistente-mapa
+      [hidden]="!asistenteVisible"
+      [elementosColocados]="elementosColocados"
+      [categoriaActiva]="categoriaActiva"
+      (cerrar)="onAsistenteCerrado()">
+    </app-asistente-mapa>
+
+    <!-- Selector rápido -->
+    <app-selector-rapido
+      *ngIf="selectorRapidoVisible"
+      (categoriaElegida)="onCategoriaRapidaElegida($event)"
+      (cerrar)="selectorRapidoVisible = false">
+    </app-selector-rapido>
+
+    <!-- Barra flotante -->
+    <div *ngIf="datosIniciales && !asistenteVisible && !selectorRapidoVisible" class="barra-flotante">
+      <button class="barra-btn" (click)="selectorRapidoVisible = true">
+        <span class="barra-icono">➕</span>
+        <span class="barra-label">Añadir</span>
+      </button>
+      <button class="barra-btn" [class.danger-active]="modoEliminarActivo"
+        [disabled]="elementosColocados === 0" (click)="onEliminar()">
+        <span class="barra-icono">🗑️</span>
+        <span class="barra-label">Eliminar</span>
+      </button>
+      <button class="barra-btn primary" [disabled]="elementosColocados === 0" (click)="onEnviar()">
+        <span class="barra-icono">📤</span>
+        <span class="barra-label">Enviar</span>
+        <span class="barra-badge" *ngIf="elementosColocados > 0">{{ elementosColocados }}</span>
+      </button>
+    </div>
 
   </div>
 

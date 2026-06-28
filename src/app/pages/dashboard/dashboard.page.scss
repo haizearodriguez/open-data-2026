@@ -24,43 +24,7 @@
   padding: 16px;
   max-width: 700px;
   margin: 0 auto;
-}
-
-// ── Cabecera ──────────────────────────────────────────────────
-
-.dash-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #111;
-    margin: 0 0 2px;
-  }
-
-  .subtitulo {
-    font-size: 13px;
-    color: #888;
-    margin: 0;
-  }
-}
-
-.btn-refrescar {
-  background: white;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover { background: #f0f0f0; }
+  padding-bottom: 32px;
 }
 
 // ── KPIs ──────────────────────────────────────────────────────
@@ -91,7 +55,6 @@
     font-weight: 700;
     color: #111;
     margin: 0;
-
     &.emoji { font-size: 32px; }
   }
 
@@ -131,13 +94,7 @@
   gap: 8px;
 
   .barra-emoji { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-
-  .barra-dot {
-    font-size: 14px;
-    width: 20px;
-    text-align: center;
-    flex-shrink: 0;
-  }
+  .barra-dot { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
 
   .barra-label {
     font-size: 13px;
@@ -162,7 +119,6 @@
     background: #2dd36f;
     border-radius: 4px;
     transition: width 0.4s ease;
-
     &.barrio { background: #f4a623; }
   }
 
@@ -176,7 +132,6 @@
   }
 }
 
-// Colores por posición de barrio
 .dot-0 { color: #e53935; }
 .dot-1 { color: #f4a623; }
 .dot-2 { color: #f4a623; }
@@ -193,12 +148,7 @@
   align-items: center;
   gap: 10px;
 
-  .semana-label {
-    font-size: 12px;
-    color: #888;
-    width: 40px;
-    flex-shrink: 0;
-  }
+  .semana-label { font-size: 12px; color: #888; width: 40px; flex-shrink: 0; }
 
   .semana-track {
     flex: 1;
@@ -215,52 +165,82 @@
     display: flex;
     align-items: center;
     padding-left: 8px;
-    min-width: 36px;
+    min-width: 0;
     transition: width 0.4s ease;
 
-    .semana-count {
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-    }
+    .semana-count { font-size: 12px; font-weight: 700; color: white; }
   }
 }
 
-// ── Últimas sugerencias ───────────────────────────────────────
+// ── Últimas propuestas ────────────────────────────────────────
 
-.ultimas-lista { display: flex; flex-direction: column; gap: 0; }
+.ultimas-lista { display: flex; flex-direction: column; }
 
 .ultima-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
 
   &:last-child { border-bottom: none; }
 
-  .ultima-emoji { font-size: 20px; }
+  .ultima-ref {
+    font-size: 10px;
+    font-weight: 700;
+    color: #2dd36f;
+    font-family: monospace;
+    flex-shrink: 0;
+    width: 90px;
+  }
 
   .ultima-info {
     flex: 1;
+    min-width: 0;
 
-    .ultima-tipo {
-      font-size: 14px;
-      font-weight: 500;
+    .ultima-barrio {
+      font-size: 13px;
+      font-weight: 600;
       color: #222;
       margin: 0;
     }
 
-    .ultima-barrio {
-      font-size: 12px;
+    .ultima-titulo {
+      font-size: 11px;
       color: #888;
       margin: 2px 0 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
-  .ultima-fecha {
-    font-size: 12px;
-    color: #aaa;
+  .ultima-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
     flex-shrink: 0;
+
+    .ultima-elementos {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .ultima-fecha {
+      font-size: 11px;
+      color: #aaa;
+    }
   }
+}
+
+// ── Sin datos ─────────────────────────────────────────────────
+
+.sin-datos {
+  text-align: center;
+  padding: 40px 20px;
+  color: #aaa;
+
+  p:first-child { font-size: 48px; margin: 0 0 12px; }
+  p:last-child { font-size: 14px; margin: 0; }
 }

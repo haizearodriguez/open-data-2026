@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonBadge, IonSpinner, IonHeader, IonToolbar } from '@ionic/angular/standalone';
+import { IonContent, IonSpinner, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton } from '@ionic/angular/standalone';
 import { SupabaseService, DashboardData } from 'src/app/core/services/supabase.service';
 
 @Component({
@@ -8,7 +8,7 @@ import { SupabaseService, DashboardData } from 'src/app/core/services/supabase.s
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [ CommonModule, IonContent, IonSpinner]
+  imports: [IonButtons, IonToolbar, IonTitle, CommonModule, IonContent, IonSpinner, IonHeader, IonMenuButton]
 })
 export class DashboardPage implements OnInit {
   datos: DashboardData | null = null;
@@ -35,12 +35,17 @@ export class DashboardPage implements OnInit {
   }
 
   porcentaje(count: number): number {
-    if (!this.datos || this.datos.total === 0) return 0;
-    return Math.round((count / this.datos.total) * 100);
+    if (!this.datos || this.datos.totalElementos === 0) return 0;
+    return Math.round((count / this.datos.totalElementos) * 100);
   }
 
   maxBarrio(): number {
     if (!this.datos) return 1;
     return Math.max(...this.datos.porBarrio.map(b => b.count), 1);
+  }
+
+  maxSemana(): number {
+    if (!this.datos) return 1;
+    return Math.max(...this.datos.porSemana.map(s => s.count), 1);
   }
 }

@@ -3,71 +3,111 @@ import { IonButton, IonList } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { MapaService } from 'src/app/core/services/mapa.service';
 import { Message } from 'src/app/core/interfaces/message';
+import { CategoriaElemento, CATEGORIAS_ELEMENTOS } from 'src/app/core/models/mobiliario.model';
+
+export type ModoReporte = 'manual' | 'foto';
+
+export interface ChatFinishedEvent {
+  barrio: string;
+  modo: ModoReporte;
+  categoria?: CategoriaElemento;
+}
 
 @Component({
   selector: 'app-chatbot',
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
-  imports: [IonButton, IonList, CommonModule]
+  standalone: true,
+  imports: [IonList, IonButton, CommonModule]
 })
 export class ChatbotComponent implements OnInit {
-  @Output() chatFinished = new EventEmitter<{ barrio: string, opcion: string}>();
+  @Output() chatFinished = new EventEmitter<ChatFinishedEvent>();
 
   messages: Message[] = [];
-  step: 'barrio' | 'fin' = 'barrio';
+  step: 'modo' | 'barrio' | 'categoria' | 'fin' = 'modo';
 
-  selectedBarrio: string = '';
+  selectedModo: ModoReporte | null = null;
+  selectedBarrio = '';
+  selectedCategoria: CategoriaElemento | null = null;
 
   barrios: string[] = [];
+  categoriasEspacioPublico = CATEGORIAS_ELEMENTOS.filter(c => c.grupo === 'espacio-publico');
+  categoriasMedioambiente  = CATEGORIAS_ELEMENTOS.filter(c => c.grupo === 'medioambiente');
 
   constructor(private mapaService: MapaService) {}
 
   ngOnInit(): void {
-    this.cargarBarriosDesdeJson();
-  }
-
-  private cargarBarriosDesdeJson(): void {
-    // Reutilizamos getBarrios() — si ya fue llamado antes, devuelve el caché sin nueva petición HTTP
     this.mapaService.getBarrios().subscribe({
       next: (data) => {
-        if (data && data.features) {
+        if (data?.features) {
           this.barrios = data.features
             .map(f => f.attributes?.TEXTO)
             .filter((name): name is string => !!name)
             .sort((a, b) => a.localeCompare(b));
-
-          this.iniciarChat();
         }
+        this.messages.push({
+          text: '¡Hola! Soy el asistente urbano de Vitoria-Gasteiz. ¿Cómo quieres reportar una incidencia?',
+          sender: 'bot'
+        });
       },
-      error: (err) => {
-        console.error('Error cargando el listado de barrios en el chatbot:', err);
+      error: () => {
         this.barrios = ['Casco Viejo', 'Zabalgana', 'Salburua'];
-        this.iniciarChat();
+        this.messages.push({
+          text: '¡Hola! Soy el asistente urbano de Vitoria-Gasteiz. ¿Cómo quieres reportar una incidencia?',
+          sender: 'bot'
+        });
       }
     });
   }
 
-  private iniciarChat(): void {
-    this.messages.push({
-      text: '¡Hola! Soy el asistente urbano de Vitoria-Gasteiz. ¿De qué barrio eres?',
-      sender: 'bot'
-    });
+  seleccionarModo(modo: ModoReporte): void {
+    this.selectedModo = modo;
+    this.messages.push({ text: modo === 'manual' ? 'Manualmente' : 'Con una foto', sender: 'user' });
+
+    if (modo === 'foto') {
+      this.step = 'fin';
+      this.messages.push({
+        text: 'Perfecto, vamos a usar la cámara para identificar el problema automáticamente.',
+        sender: 'bot'
+      });
+      this.chatFinished.emit({ barrio: '', modo: 'foto' });
+    } else {
+      this.step = 'barrio';
+      this.messages.push({ text: '¿De qué barrio eres?', sender: 'bot' });
+    }
   }
 
   seleccionarBarrio(barrio: string): void {
     this.selectedBarrio = barrio;
     this.messages.push({ text: barrio, sender: 'user' });
+    this.step = 'categoria';
+    this.messages.push({ text: '¿Qué quieres añadir o reportar?', sender: 'bot' });
+  }
 
+  seleccionarCategoria(cat: CategoriaElemento): void {
+    this.selectedCategoria = cat;
+    this.messages.push({ text: `${cat.emoji} ${cat.etiqueta}`, sender: 'user' });
     this.step = 'fin';
     this.messages.push({
-      text: 'Procesando datos espaciales... Hecho. ¡Actualizando el mapa interactivo!',
+      text: `Perfecto. Cargando el mapa de ${this.selectedBarrio}... Toca el lugar exacto donde quieres añadir la incidencia.`,
       sender: 'bot'
     });
-
     this.chatFinished.emit({
       barrio: this.selectedBarrio,
-      opcion: '',
+      modo: 'manual',
+      categoria: cat
     });
+  }
 
+  volver(): void {
+    if (this.step === 'barrio') {
+      this.step = 'modo';
+      this.messages.push({ text: '← Volver', sender: 'user' });
+      this.messages.push({ text: '¿Cómo quieres reportar una incidencia?', sender: 'bot' });
+    } else if (this.step === 'categoria') {
+      this.step = 'barrio';
+      this.messages.push({ text: '← Volver', sender: 'user' });
+      this.messages.push({ text: '¿De qué barrio eres?', sender: 'bot' });
+    }
   }
 }

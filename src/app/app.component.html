@@ -1,3 +1,47 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+
+  <ion-menu contentId="main-content" side="start">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Vitoria Ciudadana</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list lines="none" class="menu-lista">
+
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button (click)="navegarA('/mapa')" class="menu-item">
+            <ion-icon slot="start" name="map-outline"></ion-icon>
+            <ion-label>Mapa</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button (click)="navegarA('/dashboard')" class="menu-item">
+            <ion-icon slot="start" name="grid-outline"></ion-icon>
+            <ion-label>Dashboard</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <div class="menu-separator"></div>
+
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button (click)="nuevaPropuesta()" class="menu-item">
+            <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
+            <ion-label>Nueva propuesta</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+      </ion-list>
+
+      <div class="menu-footer">
+        <p>Open Data Euskadi</p>
+        <p>Vitoria-Gasteiz · 2025</p>
+      </div>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
 </ion-app>

@@ -1,17 +1,70 @@
 <div class="chat-container">
   <ion-list lines="none" class="message-list">
     <div *ngFor="let msg of messages" [ngClass]="['message-wrapper', msg.sender]">
-      <div class="bubble">
-        {{ msg.text }}
-      </div>
+      <div class="bubble">{{ msg.text }}</div>
     </div>
   </ion-list>
 
   <div class="options-container">
-    <div *ngIf="step === 'barrio'" class="options-grid">
-      <ion-button *ngFor="let b of barrios" (click)="seleccionarBarrio(b)" fill="outline" shape="round" size="small">
-        {{ b }}
-      </ion-button>
+
+    <!-- Paso 1: elegir modo -->
+    <div *ngIf="step === 'modo'" class="modo-grid">
+      <button class="modo-btn" (click)="seleccionarModo('foto')">
+        <span class="modo-icono">📷</span>
+        <div class="modo-texto">
+          <span class="modo-titulo">Hacer una foto</span>
+          <span class="modo-desc">La IA detecta el problema automáticamente</span>
+        </div>
+        <span class="modo-badge">Nuevo</span>
+      </button>
+      <button class="modo-btn secundario" (click)="seleccionarModo('manual')">
+        <span class="modo-icono">📋</span>
+        <div class="modo-texto">
+          <span class="modo-titulo">Seleccionar manualmente</span>
+          <span class="modo-desc">Elige la categoría y colócala en el mapa</span>
+        </div>
+      </button>
     </div>
+
+    <!-- Paso 2: elegir barrio -->
+    <div *ngIf="step === 'barrio'">
+      <button class="btn-volver" (click)="volver()">← Volver</button>
+      <div class="options-grid">
+        <ion-button
+          *ngFor="let b of barrios"
+          (click)="seleccionarBarrio(b)"
+          fill="outline"
+          shape="round"
+          size="small">
+          {{ b }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 3: elegir categoría -->
+    <div *ngIf="step === 'categoria'">
+      <button class="btn-volver" (click)="volver()">← Volver</button>
+      <p class="grupo-titulo">🏙️ Espacio público</p>
+      <div class="categorias-grid">
+        <button
+          *ngFor="let cat of categoriasEspacioPublico"
+          class="cat-btn"
+          (click)="seleccionarCategoria(cat)">
+          <span class="cat-emoji">{{ cat.emoji }}</span>
+          <span class="cat-label">{{ cat.etiqueta }}</span>
+        </button>
+      </div>
+      <p class="grupo-titulo">🌿 Medio ambiente</p>
+      <div class="categorias-grid">
+        <button
+          *ngFor="let cat of categoriasMedioambiente"
+          class="cat-btn"
+          (click)="seleccionarCategoria(cat)">
+          <span class="cat-emoji">{{ cat.emoji }}</span>
+          <span class="cat-label">{{ cat.etiqueta }}</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>

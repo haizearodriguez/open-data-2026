@@ -1,3 +1,15 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Propuestas enviadas</ion-title>
+    <ion-buttons slot="end">
+      <button style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0 12px;" (click)="cargarDatos()">↺</button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content [fullscreen]="true" class="dashboard-content">
 
   <!-- Cargando -->
@@ -15,38 +27,29 @@
   <!-- Dashboard -->
   <div *ngIf="datos && !cargando" class="dashboard">
 
-    <!-- Cabecera -->
-    <div class="dash-header">
-      <div>
-        <h1>Sugerencias ciudadanas</h1>
-        <p class="subtitulo">Vitoria-Gasteiz</p>
-      </div>
-      <button class="btn-refrescar" (click)="cargarDatos()">↺</button>
-    </div>
-
     <!-- KPIs -->
     <div class="kpis-grid">
       <div class="kpi-card">
-        <p class="kpi-label">Total sugerencias</p>
+        <p class="kpi-label">Propuestas enviadas</p>
         <p class="kpi-valor">{{ datos.total }}</p>
+      </div>
+      <div class="kpi-card">
+        <p class="kpi-label">Elementos reportados</p>
+        <p class="kpi-valor">{{ datos.totalElementos }}</p>
       </div>
       <div class="kpi-card">
         <p class="kpi-label">Barrios activos</p>
         <p class="kpi-valor">{{ datos.porBarrio.length }}</p>
       </div>
       <div class="kpi-card">
-        <p class="kpi-label">Tipo más repetido</p>
-        <p class="kpi-valor emoji">{{ datos.porTipo[0]?.emoji }}</p>
-        <p class="kpi-sub">{{ datos.porTipo[0]?.etiqueta }}</p>
-      </div>
-      <div class="kpi-card">
-        <p class="kpi-label">Esta semana</p>
-        <p class="kpi-valor">{{ datos.porSemana[4]?.count ?? 0 }}</p>
+        <p class="kpi-label">Tipo más frecuente</p>
+        <p class="kpi-valor emoji">{{ datos.porTipo[0]?.emoji ?? '—' }}</p>
+        <p class="kpi-sub">{{ datos.porTipo[0]?.etiqueta ?? '' }}</p>
       </div>
     </div>
 
     <!-- Por tipo -->
-    <div class="dash-card">
+    <div class="dash-card" *ngIf="datos.porTipo.length > 0">
       <h2>Por tipo de elemento</h2>
       <div class="barra-lista">
         <div *ngFor="let item of datos.porTipo" class="barra-item">
@@ -60,9 +63,9 @@
       </div>
     </div>
 
-    <!-- Puntos calientes por barrio -->
-    <div class="dash-card">
-      <h2>Puntos calientes por barrio</h2>
+    <!-- Por barrio -->
+    <div class="dash-card" *ngIf="datos.porBarrio.length > 0">
+      <h2>Propuestas por barrio</h2>
       <div class="barra-lista">
         <div *ngFor="let b of datos.porBarrio; let i = index" class="barra-item">
           <span class="barra-dot" [class]="'dot-' + i">●</span>
@@ -75,19 +78,43 @@
       </div>
     </div>
 
-    <!-- Últimas sugerencias -->
+    <!-- Evolución semanal -->
     <div class="dash-card">
-      <h2>Últimas sugerencias</h2>
-      <div class="ultimas-lista">
-        <div *ngFor="let s of datos.ultimas" class="ultima-item">
-          <span class="ultima-emoji">{{ s.emoji }}</span>
-          <div class="ultima-info">
-            <p class="ultima-tipo">{{ s.etiqueta }}</p>
-            <p class="ultima-barrio">{{ s.barrio }}</p>
+      <h2>Evolución semanal</h2>
+      <div class="semanas-lista">
+        <div *ngFor="let s of datos.porSemana" class="semana-item">
+          <span class="semana-label">Sem {{ s.semana }}</span>
+          <div class="semana-track">
+            <div class="semana-fill" [style.width.%]="maxSemana() > 0 ? (s.count / maxSemana()) * 100 : 0">
+              <span class="semana-count" *ngIf="s.count > 0">{{ s.count }}</span>
+            </div>
           </div>
-          <span class="ultima-fecha">{{ s.created_at | date:'d MMM' }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- Últimas propuestas -->
+    <div class="dash-card" *ngIf="datos.ultimas.length > 0">
+      <h2>Últimas propuestas</h2>
+      <div class="ultimas-lista">
+        <div *ngFor="let p of datos.ultimas" class="ultima-item">
+          <div class="ultima-ref">{{ p.referencia }}</div>
+          <div class="ultima-info">
+            <p class="ultima-barrio">{{ p.barrio }}</p>
+            <p class="ultima-titulo">{{ p.titulo }}</p>
+          </div>
+          <div class="ultima-meta">
+            <span class="ultima-elementos">{{ p.num_elementos }} elem.</span>
+            <span class="ultima-fecha">{{ p.created_at | date:'d MMM' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin datos -->
+    <div *ngIf="datos.total === 0" class="sin-datos">
+      <p>📭</p>
+      <p>Aún no hay propuestas enviadas.</p>
     </div>
 
   </div>

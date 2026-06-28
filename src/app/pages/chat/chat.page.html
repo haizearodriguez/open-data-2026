@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Vitoria Ciudadana</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <app-chatbot
+    *ngIf="chatKey > 0"
+    (chatFinished)="onChatFinished($event)">
+  </app-chatbot>
+</ion-content>
