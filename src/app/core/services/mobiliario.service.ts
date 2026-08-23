@@ -12,15 +12,6 @@ export class MobiliarioService {
   public async guardarElementoTemporal(elemento: ElementoMobiliario): Promise<void> {
     const id = elemento.id ?? `elem-${Date.now()}`;
     this.elementosMap.set(id, { ...elemento, id });
-
-    const categoria = CATEGORIAS_ELEMENTOS.find(c => c.tipo === elemento.tipo);
-    if (categoria) {
-      try {
-        await this.supabaseService.guardarSugerencia(elemento, categoria.emoji, categoria.etiqueta);
-      } catch (error) {
-        console.error('Error al guardar sugerencia en Supabase:', error);
-      }
-    }
   }
 
   public eliminarElementoPorId(id: string): void {

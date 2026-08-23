@@ -1,15 +1,29 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+      <app-idioma-selector></app-idioma-selector>
     </ion-buttons>
     <ion-title>Vitoria Ciudadana</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" style="color:white;font-size:13px;font-weight:500;" (click)="irDashboard()">
+        Dashboard →
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+
+  <!-- Banner de instalación PWA -->
+  <div *ngIf="mostrarBannerInstall" class="install-banner">
+    <span>📲 Instala la app en tu móvil</span>
+    <button class="install-btn" (click)="instalarPwa()">Instalar</button>
+    <button class="install-close" (click)="mostrarBannerInstall = false">✕</button>
+  </div>
+
   <app-chatbot
     *ngIf="chatKey > 0"
     (chatFinished)="onChatFinished($event)">
   </app-chatbot>
+
 </ion-content>

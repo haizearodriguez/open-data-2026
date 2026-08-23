@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { MobiliarioService } from 'src/app/core/services/mobiliario.service';
 import { SupabaseService } from 'src/app/core/services/supabase.service';
-import { ElementoMobiliario, CATEGORIAS_ELEMENTOS } from 'src/app/core/models/mobiliario.model';
+import { ElementoMobiliario, CATEGORIAS_ELEMENTOS, CategoriaElemento } from 'src/app/core/models/mobiliario.model';
 
 @Component({
   selector: 'app-resumen',
@@ -18,6 +18,7 @@ export class ResumenPage implements OnInit {
 
   elementos: ElementoMobiliario[] = [];
   barrio = '';
+  desdeFoto = false;
 
   nombre = '';
   primerApellido = '';
@@ -40,12 +41,35 @@ export class ResumenPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    const state = history.state;
+    this.desdeFoto = state?.desdeFoto ?? false;
+
+    if (this.desdeFoto) {
+      // Viene de la página de foto — los datos ya vienen pre-rellenados
+      const categoria: CategoriaElemento = state.categoria;
+      const coordenadas = state.coordenadas ?? { lat: 42.84695, lng: -2.67268 };
+
+      // Crea el elemento en el servicio con los datos de la foto
+      const id = `foto-${Date.now()}`;
+      this.mobiliarioService.guardarElementoTemporal({
+        id,
+        tipo: categoria.tipo,
+        barrio: 'Sin especificar', // en foto no se elige barrio
+        coordenadas,
+        fechaCreacion: new Date()
+      });
+
+      this.titulo = state.titulo ?? '';
+      this.descripcion = state.descripcion ?? '';
+    }
+
     this.elementos = this.mobiliarioService.obtenerPropuestaActual();
     this.barrio = this.elementos[0]?.barrio ?? '';
 
-    const tipos = [...new Set(this.elementos.map(e => this.getEtiqueta(e.tipo)))];
-    this.titulo = `Solicitud de mejora en ${this.barrio}: ${tipos.join(', ')}`;
-    this.descripcion = '';
+    if (!this.titulo) {
+      const tipos = [...new Set(this.elementos.map(e => this.getEtiqueta(e.tipo)))];
+      this.titulo = `Solicitud de mejora en ${this.barrio}: ${tipos.join(', ')}`;
+    }
   }
 
   getEmoji(tipo: string): string {
@@ -163,7 +187,6 @@ export class ResumenPage implements OnInit {
   }
 
   volver() {
-    // Usa history.back() para volver con el state correcto
     history.back();
   }
 }

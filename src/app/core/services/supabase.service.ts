@@ -3,16 +3,6 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
 import { ElementoMobiliario } from '../models/mobiliario.model';
 
-export interface Sugerencia {
-  id?: string;
-  tipo: string;
-  etiqueta: string;
-  emoji: string;
-  barrio: string;
-  lng: number;
-  lat: number;
-  created_at?: string;
-}
 
 export interface Propuesta {
   id?: string;
@@ -50,19 +40,6 @@ export class SupabaseService {
     );
   }
 
-  async guardarSugerencia(elemento: ElementoMobiliario, emoji: string, etiqueta: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('sugerencias')
-      .insert({
-        tipo: elemento.tipo,
-        etiqueta,
-        emoji,
-        barrio: elemento.barrio,
-        lng: elemento.coordenadas.lng,
-        lat: elemento.coordenadas.lat,
-      });
-    if (error) throw error;
-  }
 
   /**
    * Carga el dashboard desde la tabla propuestas (formularios enviados al ayuntamiento)

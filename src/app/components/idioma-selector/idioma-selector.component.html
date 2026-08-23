@@ -1,0 +1,15 @@
+<div class="idioma-toggle">
+  <button
+    class="idioma-btn"
+    [class.activo]="idiomaService.idioma() === 'es'"
+    (click)="idiomaService.cambiar('es')">
+    Cast
+  </button>
+  <span class="idioma-sep">|</span>
+  <button
+    class="idioma-btn"
+    [class.activo]="idiomaService.idioma() === 'eu'"
+    (click)="idiomaService.cambiar('eu')">
+    Eus
+  </button>
+</div>

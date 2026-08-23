@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { IonContent, IonBadge, MenuController } from '@ionic/angular/standalone';
+import { IonContent, IonBadge, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton } from '@ionic/angular/standalone';
 
+import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
 import { AsistenteMapaComponent } from 'src/app/components/asistente-mapa/asistente-mapa.component';
 import { SelectorRapidoComponent } from 'src/app/components/selector-rapido/selector-rapido.component';
 import { ChatData } from 'src/app/core/interfaces/chat-data';
@@ -18,8 +19,9 @@ import { CategoriaElemento } from 'src/app/core/models/mobiliario.model';
   styleUrls: ['./mapa.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonBadge,
-    AsistenteMapaComponent, SelectorRapidoComponent
+    CommonModule, IonContent,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+    IdiomaSelectorComponent, AsistenteMapaComponent, SelectorRapidoComponent
   ]
 })
 export class MapaPage implements OnDestroy {
@@ -41,14 +43,12 @@ export class MapaPage implements OnDestroy {
   constructor(
     private router: Router,
     private mapaService: MapaService,
-    private mobiliarioService: MobiliarioService,
-    private menuCtrl: MenuController
+    private mobiliarioService: MobiliarioService
   ) {}
 
   async ionViewDidEnter(): Promise<void> {
     const state = history.state;
 
-    // Resetea todo el estado
     this.datosIniciales = null;
     this.categoriaActiva = null;
     this.coordenadasMatch = null;
@@ -66,14 +66,11 @@ export class MapaPage implements OnDestroy {
     if (state?.coordenadas) this.coordenadasMatch = state.coordenadas;
     if (!this.datosIniciales || !this.mapContainer) return;
 
-    // Cancela suscripciones anteriores
     this.destroy$.next();
     this.destroy$ = new Subject<void>();
 
-    // 1. PRIMERO construir el mapa — esto recrea los Subjects internos
     await this.inicializarMapaEnBarrio(this.datosIniciales.barrio);
 
-    // 2. DESPUÉS suscribirse a los Subjects nuevos
     this.mapaService.ringsBarrio$
       .pipe(takeUntil(this.destroy$))
       .subscribe(rings => {
@@ -91,10 +88,6 @@ export class MapaPage implements OnDestroy {
     this.mapaService.mapaClick$
       .pipe(takeUntil(this.destroy$))
       .subscribe(coords => {
-        console.log('SUSCRIPCION CLIC', {
-          categoriaActiva: this.categoriaActiva?.tipo,
-          datosIniciales: this.datosIniciales?.barrio
-        });
         if (!this.datosIniciales || !this.categoriaActiva || this.modoEliminarActivo) return;
 
         const marcadorId = this.mapaService.agregarMarcadorMobiliario(
@@ -125,7 +118,6 @@ export class MapaPage implements OnDestroy {
       nivelZoom = 16.5;
     }
 
-    // construirMapa recrea los Subjects — suscribirse DESPUÉS de esta llamada
     this.mapaService.construirMapa(
       this.mapContainer.nativeElement,
       centroCoordenadas,
@@ -140,7 +132,6 @@ export class MapaPage implements OnDestroy {
 
   onAsistenteCerrado(): void {
     this.asistenteVisible = false;
-    // NO borra categoriaActiva — el usuario cierra el panel para tocar el mapa
   }
 
   onCategoriaRapidaElegida(cat: CategoriaElemento): void {
@@ -148,7 +139,6 @@ export class MapaPage implements OnDestroy {
     this.selectorRapidoVisible = false;
     this.asistenteVisible = true;
     this.asistenteRef?.reiniciarParaNuevo();
-
     if (this.ringsActivos && this.datosIniciales) {
       this.mapaService.cargarCapaParaCategoria(cat.tipo, this.datosIniciales.barrio, this.ringsActivos);
     }
@@ -173,8 +163,8 @@ export class MapaPage implements OnDestroy {
     this.router.navigate(['/resumen']);
   }
 
-  abrirMenu(): void {
-    this.menuCtrl.open();
+  nuevaPropuesta(): void {
+    this.router.navigate(['/chat']);
   }
 
   ionViewWillLeave(): void {

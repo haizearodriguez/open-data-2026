@@ -1,28 +1,30 @@
-<ion-content [fullscreen]="true">
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <app-idioma-selector></app-idioma-selector>
+    </ion-buttons>
+    <ion-title>{{ datosIniciales?.barrio ?? 'Mapa' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" style="color:white;font-size:13px;font-weight:500;" (click)="nuevaPropuesta()">
+        Nueva propuesta →
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
+<ion-content [fullscreen]="true">
   <div class="map-container-wrapper">
 
     <div #mapContainer id="map" style="width: 100%; height: 100%;"></div>
 
-    <!-- Badge barrio -->
-    <ion-badge *ngIf="datosIniciales" color="secondary" class="context-badge">
-      {{ datosIniciales.barrio }}
-    </ion-badge>
-
-    <!-- Botón menú -->
-    <button class="btn-menu" (click)="abrirMenu()">☰</button>
-
-    <!-- Aviso modo colocación -->
     <div *ngIf="categoriaActiva && !asistenteVisible" class="aviso-edicion">
       {{ categoriaActiva.emoji }} Toca el mapa para colocar: {{ categoriaActiva.etiqueta }}
     </div>
 
-    <!-- Aviso modo eliminación -->
     <div *ngIf="modoEliminarActivo" class="aviso-eliminar">
       🗑️ Toca el elemento que quieres eliminar
     </div>
 
-    <!-- Asistente -->
     <app-asistente-mapa
       [hidden]="!asistenteVisible"
       [elementosColocados]="elementosColocados"
@@ -30,14 +32,12 @@
       (cerrar)="onAsistenteCerrado()">
     </app-asistente-mapa>
 
-    <!-- Selector rápido -->
     <app-selector-rapido
       *ngIf="selectorRapidoVisible"
       (categoriaElegida)="onCategoriaRapidaElegida($event)"
       (cerrar)="selectorRapidoVisible = false">
     </app-selector-rapido>
 
-    <!-- Barra flotante -->
     <div *ngIf="datosIniciales && !asistenteVisible && !selectorRapidoVisible" class="barra-flotante">
       <button class="barra-btn" (click)="selectorRapidoVisible = true">
         <span class="barra-icono">➕</span>
@@ -56,5 +56,4 @@
     </div>
 
   </div>
-
 </ion-content>

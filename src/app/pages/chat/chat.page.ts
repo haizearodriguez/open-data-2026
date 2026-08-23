@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton } from '@ionic/angular/standalone';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton
+} from '@ionic/angular/standalone';
 import { ChatbotComponent, ChatFinishedEvent } from 'src/app/components/chatbot/chatbot.component';
+import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
 
 @Component({
   selector: 'app-chat',
@@ -11,19 +14,44 @@ import { ChatbotComponent, ChatFinishedEvent } from 'src/app/components/chatbot/
   standalone: true,
   imports: [
     CommonModule,
-    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton,
-    ChatbotComponent
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+    IdiomaSelectorComponent, ChatbotComponent
   ]
 })
 export class ChatPage {
-  chatKey = Date.now(); // cambia cada vez → fuerza recreación del chatbot
+  chatKey = Date.now();
+  mostrarBannerInstall = false;
+  private installPrompt: any = null;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    // Captura el evento antes de que el navegador lo muestre
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this.installPrompt = e;
+      this.mostrarBannerInstall = true;
+    });
 
- ionViewWillEnter(): void {
-  this.chatKey = 0;
-  setTimeout(() => { this.chatKey = Date.now(); }, 50);
-}
+    // Oculta el banner si ya está instalada
+    window.addEventListener('appinstalled', () => {
+      this.mostrarBannerInstall = false;
+      this.installPrompt = null;
+    });
+  }
+
+  ionViewWillEnter(): void {
+    this.chatKey = 0;
+    setTimeout(() => { this.chatKey = Date.now(); }, 50);
+  }
+
+  async instalarPwa(): Promise<void> {
+    if (!this.installPrompt) return;
+    this.installPrompt.prompt();
+    const { outcome } = await this.installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      this.mostrarBannerInstall = false;
+      this.installPrompt = null;
+    }
+  }
 
   onChatFinished(event: ChatFinishedEvent): void {
     if (event.modo === 'foto') {
@@ -37,5 +65,9 @@ export class ChatPage {
         }
       });
     }
+  }
+
+  irDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

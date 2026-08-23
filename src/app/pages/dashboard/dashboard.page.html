@@ -1,33 +1,32 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+      <app-idioma-selector></app-idioma-selector>
     </ion-buttons>
     <ion-title>Propuestas enviadas</ion-title>
     <ion-buttons slot="end">
-      <button style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0 12px;" (click)="cargarDatos()">↺</button>
+      <ion-button fill="clear" style="color:white;font-size:13px;font-weight:500;" routerLink="/chat">
+        Nueva propuesta →
+      </ion-button>
+      <ion-button fill="clear" style="color:white;font-size:20px;" (click)="cargarDatos()">↺</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="dashboard-content">
 
-  <!-- Cargando -->
   <div *ngIf="cargando" class="estado-central">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Cargando datos...</p>
   </div>
 
-  <!-- Error -->
   <div *ngIf="error && !cargando" class="estado-central">
     <p>⚠️ No se pudieron cargar los datos.</p>
     <button class="btn-reintentar" (click)="cargarDatos()">Reintentar</button>
   </div>
 
-  <!-- Dashboard -->
   <div *ngIf="datos && !cargando" class="dashboard">
 
-    <!-- KPIs -->
     <div class="kpis-grid">
       <div class="kpi-card">
         <p class="kpi-label">Propuestas enviadas</p>
@@ -48,7 +47,6 @@
       </div>
     </div>
 
-    <!-- Por tipo -->
     <div class="dash-card" *ngIf="datos.porTipo.length > 0">
       <h2>Por tipo de elemento</h2>
       <div class="barra-lista">
@@ -63,7 +61,6 @@
       </div>
     </div>
 
-    <!-- Por barrio -->
     <div class="dash-card" *ngIf="datos.porBarrio.length > 0">
       <h2>Propuestas por barrio</h2>
       <div class="barra-lista">
@@ -78,7 +75,6 @@
       </div>
     </div>
 
-    <!-- Evolución semanal -->
     <div class="dash-card">
       <h2>Evolución semanal</h2>
       <div class="semanas-lista">
@@ -93,7 +89,6 @@
       </div>
     </div>
 
-    <!-- Últimas propuestas -->
     <div class="dash-card" *ngIf="datos.ultimas.length > 0">
       <h2>Últimas propuestas</h2>
       <div class="ultimas-lista">
@@ -111,12 +106,10 @@
       </div>
     </div>
 
-    <!-- Sin datos -->
     <div *ngIf="datos.total === 0" class="sin-datos">
       <p>📭</p>
       <p>Aún no hay propuestas enviadas.</p>
     </div>
 
   </div>
-
 </ion-content>

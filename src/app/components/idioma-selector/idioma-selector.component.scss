@@ -1,0 +1,32 @@
+.idioma-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.idioma-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  letter-spacing: 0.3px;
+
+  &.activo {
+    color: white;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:hover { color: white; }
+}
+
+.idioma-sep {
+  color: rgba(255,255,255,0.3);
+  font-size: 12px;
+}

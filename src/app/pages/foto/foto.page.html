@@ -1,0 +1,138 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <app-idioma-selector></app-idioma-selector>
+    </ion-buttons>
+    <ion-title>Reportar con foto</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" style="color:white;font-size:13px;" (click)="volver()">
+        ← Volver
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="foto-content">
+
+  <!-- ── PASO 1: Captura ── -->
+  <div *ngIf="paso === 'captura'" class="foto-wrapper">
+
+    <div class="mensaje-bot">
+      <span class="avatar">🤖</span>
+      <p>Haz una foto al problema urbano que quieres reportar. La IA lo identificará automáticamente.</p>
+    </div>
+
+    <div class="preview-area" *ngIf="fotoPreview">
+      <img [src]="fotoPreview" alt="Foto seleccionada" class="foto-preview"/>
+      <button class="btn-repetir" (click)="repetirFoto()">✕ Cambiar foto</button>
+    </div>
+
+    <div class="captura-zona" *ngIf="!fotoPreview">
+      <span class="captura-icono">📷</span>
+      <p>Toca para abrir la cámara o seleccionar una imagen</p>
+    </div>
+
+    <div class="botones-captura">
+      <label class="btn-camara">
+        📷 Cámara
+        <input type="file" accept="image/*" capture="environment"
+               (change)="onFotoSeleccionada($event)" style="display:none">
+      </label>
+      <label class="btn-galeria">
+        🖼️ Galería
+        <input type="file" accept="image/*"
+               (change)="onFotoSeleccionada($event)" style="display:none">
+      </label>
+    </div>
+
+    <div class="gps-info" *ngIf="coordenadas">
+      📍 Ubicación obtenida: {{ coordenadas.lat.toFixed(4) }}, {{ coordenadas.lng.toFixed(4) }}
+    </div>
+    <div class="gps-warning" *ngIf="errorGps">⚠️ {{ errorGps }}</div>
+    <div class="error-msg" *ngIf="error">⚠️ {{ error }}</div>
+
+    <button class="btn-primary" [disabled]="!fotoBase64" (click)="analizarFoto()">
+      ✨ Analizar con IA
+    </button>
+
+  </div>
+
+  <!-- ── PASO 2: Analizando ── -->
+  <div *ngIf="paso === 'analizando'" class="analizando-wrapper">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p class="analizando-texto">Analizando la imagen...</p>
+    <p class="analizando-sub">La IA está identificando el problema urbano</p>
+  </div>
+
+  <!-- ── PASO 3: Resultado ── -->
+  <div *ngIf="paso === 'resultado'" class="resultado-wrapper">
+
+    <div class="mensaje-bot">
+      <span class="avatar">🤖</span>
+      <p>He identificado el problema. Revisa y edita si es necesario antes de confirmar.</p>
+    </div>
+
+    <img *ngIf="fotoPreview" [src]="fotoPreview" class="foto-mini" alt="Foto reportada"/>
+
+    <!-- Categoría detectada -->
+    <div class="categoria-detectada" *ngIf="categoriaDetectada">
+      <span class="cat-emoji">{{ categoriaDetectada.emoji }}</span>
+      <div class="cat-info">
+        <p class="cat-label">Categoría detectada</p>
+        <p class="cat-valor">{{ categoriaDetectada.etiqueta }}</p>
+      </div>
+      <button class="btn-cambiar-cat" (click)="mostrarSelectorCategoria = !mostrarSelectorCategoria">
+        {{ mostrarSelectorCategoria ? '✕' : '✏️ Cambiar' }}
+      </button>
+    </div>
+
+    <!-- Selector de categoría alternativa -->
+    <div *ngIf="mostrarSelectorCategoria" class="selector-categoria">
+      <p class="selector-titulo">Selecciona la categoría correcta:</p>
+
+      <p class="grupo-titulo">🏙️ Espacio público</p>
+      <div class="cat-grid">
+        <button *ngFor="let cat of categoriasEspacioPublico"
+          class="cat-opcion"
+          [class.activa]="categoriaDetectada?.tipo === cat.tipo"
+          (click)="cambiarCategoria(cat)">
+          <span>{{ cat.emoji }}</span>
+          <span>{{ cat.etiqueta }}</span>
+        </button>
+      </div>
+
+      <p class="grupo-titulo">🌿 Medio ambiente</p>
+      <div class="cat-grid">
+        <button *ngFor="let cat of categoriasMedioambiente"
+          class="cat-opcion"
+          [class.activa]="categoriaDetectada?.tipo === cat.tipo"
+          (click)="cambiarCategoria(cat)">
+          <span>{{ cat.emoji }}</span>
+          <span>{{ cat.etiqueta }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="gps-info" *ngIf="coordenadas">
+      📍 {{ coordenadas.lat.toFixed(4) }}, {{ coordenadas.lng.toFixed(4) }} · GPS automático
+    </div>
+    <div class="gps-warning" *ngIf="errorGps">⚠️ {{ errorGps }}</div>
+
+    <div class="campo-resultado">
+      <label>Título</label>
+      <input type="text" [(ngModel)]="tituloGenerado" maxlength="80">
+    </div>
+
+    <div class="campo-resultado">
+      <label>Descripción</label>
+      <textarea [(ngModel)]="descripcionGenerada" rows="4"></textarea>
+    </div>
+
+    <div class="botones-resultado">
+      <button class="btn-secundario" (click)="repetirFoto()">← Repetir foto</button>
+      <button class="btn-primary" (click)="confirmar()">Confirmar y enviar →</button>
+    </div>
+
+  </div>
+
+</ion-content>

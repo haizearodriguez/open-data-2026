@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonSpinner, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton } from '@ionic/angular/standalone';
+import { RouterLink } from '@angular/router';
+import { IonContent, IonSpinner, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton } from '@ionic/angular/standalone';
 import { SupabaseService, DashboardData } from 'src/app/core/services/supabase.service';
 
 @Component({
@@ -8,7 +10,7 @@ import { SupabaseService, DashboardData } from 'src/app/core/services/supabase.s
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [IonButtons, IonToolbar, IonTitle, CommonModule, IonContent, IonSpinner, IonHeader, IonMenuButton]
+  imports: [IdiomaSelectorComponent, CommonModule, RouterLink, IonContent, IonSpinner, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton]
 })
 export class DashboardPage implements OnInit {
   datos: DashboardData | null = null;
@@ -17,9 +19,7 @@ export class DashboardPage implements OnInit {
 
   constructor(private supabaseService: SupabaseService) {}
 
-  ngOnInit() {
-    this.cargarDatos();
-  }
+  ngOnInit() { this.cargarDatos(); }
 
   async cargarDatos() {
     this.cargando = true;

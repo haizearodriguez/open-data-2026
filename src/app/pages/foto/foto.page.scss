@@ -1,0 +1,312 @@
+.foto-content {
+  --background: #f9f9f9;
+}
+
+.foto-wrapper, .resultado-wrapper {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.analizando-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+
+  ion-spinner { width: 48px; height: 48px; }
+
+  .analizando-texto {
+    font-size: 17px;
+    font-weight: 600;
+    color: #222;
+    margin: 0;
+  }
+
+  .analizando-sub {
+    font-size: 14px;
+    color: #888;
+    margin: 0;
+  }
+}
+
+// ── Burbuja bot ───────────────────────────────────────────────
+
+.mensaje-bot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: white;
+  border-radius: 0 16px 16px 16px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+  .avatar { font-size: 22px; flex-shrink: 0; }
+  p { margin: 0; font-size: 14px; line-height: 1.5; color: #333; }
+}
+
+// ── Captura ───────────────────────────────────────────────────
+
+.captura-zona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 2px dashed #e0e0e0;
+  border-radius: 16px;
+  padding: 32px 16px;
+  text-align: center;
+
+  .captura-icono { font-size: 48px; }
+  p { font-size: 14px; color: #888; margin: 0; }
+}
+
+.preview-area {
+  position: relative;
+
+  .foto-preview {
+    width: 100%;
+    border-radius: 16px;
+    max-height: 260px;
+    object-fit: cover;
+  }
+
+  .btn-repetir {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+}
+
+.botones-captura {
+  display: flex;
+  gap: 10px;
+
+  label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-camara {
+    background: var(--ion-color-primary, #2dd36f);
+    color: white;
+  }
+
+  .btn-galeria {
+    background: white;
+    color: #333;
+    border: 1.5px solid #e0e0e0;
+  }
+}
+
+// ── GPS ───────────────────────────────────────────────────────
+
+.gps-info {
+  font-size: 12px;
+  color: #2dd36f;
+  background: #f0fff4;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.gps-warning {
+  font-size: 12px;
+  color: #f4a623;
+  background: #fffbf0;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+// ── Botones ───────────────────────────────────────────────────
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--ion-color-primary, #2dd36f);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:not(:disabled):hover { opacity: 0.9; }
+}
+
+.btn-secundario {
+  padding: 12px 20px;
+  background: none;
+  border: 1.5px solid #ccc;
+  border-radius: 14px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+
+  &:hover { background: #f5f5f5; }
+}
+
+.error-msg {
+  background: #fdecea;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #c62828;
+}
+
+// ── Resultado ─────────────────────────────────────────────────
+
+.foto-mini {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.categoria-detectada {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #e8f5e9;
+  border-radius: 12px;
+  padding: 14px 16px;
+
+  .cat-emoji { font-size: 28px; flex-shrink: 0; }
+
+  .cat-label { font-size: 11px; color: #555; margin: 0; text-transform: uppercase; letter-spacing: 0.4px; }
+  .cat-valor { font-size: 15px; font-weight: 600; color: #222; margin: 2px 0 0; }
+
+  .cat-check { margin-left: auto; font-size: 20px; }
+}
+
+.campo-resultado {
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #222;
+    background: white;
+    box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+
+    &:focus { border-color: var(--ion-color-primary, #2dd36f); }
+  }
+}
+
+.botones-resultado {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  .btn-secundario { flex-shrink: 0; }
+  .btn-primary { flex: 1; }
+}
+
+// ── Selector categoría ────────────────────────────────────────
+
+.btn-cambiar-cat {
+  margin-left: auto;
+  background: none;
+  border: 1.5px solid #ccc;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover { background: #f0f0f0; }
+}
+
+.selector-categoria {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+
+  .selector-titulo {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin: 0 0 10px;
+  }
+}
+
+.grupo-titulo {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 8px;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.cat-opcion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f7f7f7;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: #e8f5e9; border-color: var(--ion-color-primary, #2dd36f); }
+
+  &.activa {
+    background: #e8f5e9;
+    border-color: var(--ion-color-primary, #2dd36f);
+    font-weight: 600;
+  }
+
+  span:first-child { font-size: 16px; flex-shrink: 0; }
+}
