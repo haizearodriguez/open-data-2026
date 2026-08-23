@@ -44,7 +44,9 @@
   align-items: center;
   justify-content: center;
 
-  &:hover { background: #f0f0f0; }
+  &:hover {
+    background: #f0f0f0;
+  }
 }
 
 // ── Cards ─────────────────────────────────────────────────────
@@ -54,7 +56,7 @@
   border-radius: 14px;
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 
   h2 {
     font-size: 13px;
@@ -68,7 +70,11 @@
 
 // ── Elementos ─────────────────────────────────────────────────
 
-.elemento-lista { display: flex; flex-direction: column; gap: 8px; }
+.elemento-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 .elemento-item {
   display: flex;
@@ -78,7 +84,9 @@
   background: #f7f7f7;
   border-radius: 10px;
 
-  .elem-emoji { font-size: 22px; }
+  .elem-emoji {
+    font-size: 22px;
+  }
 
   .elem-info {
     .elem-tipo {
@@ -87,6 +95,7 @@
       color: #222;
       margin: 0;
     }
+
     .elem-coords {
       font-size: 11px;
       color: #aaa;
@@ -116,7 +125,9 @@
     margin-bottom: 6px;
   }
 
-  .req { color: #e53935; }
+  .req {
+    color: #e53935;
+  }
 
   input {
     width: 100%;
@@ -130,8 +141,14 @@
     outline: none;
     transition: border-color 0.15s;
 
-    &:focus { border-color: var(--ion-color-primary, #2dd36f); background: white; }
-    &::placeholder { color: #bbb; }
+    &:focus {
+      border-color: var(--ion-color-primary, #2dd36f);
+      background: white;
+    }
+
+    &::placeholder {
+      color: #bbb;
+    }
   }
 }
 
@@ -158,7 +175,9 @@
     cursor: not-allowed;
   }
 
-  &:not(:disabled):hover { opacity: 0.9; }
+  &:not(:disabled):hover {
+    opacity: 0.9;
+  }
 }
 
 // ── Error ─────────────────────────────────────────────────────
@@ -173,6 +192,25 @@
   margin-bottom: 12px;
 }
 
+.error-title {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.error-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.5;
+}
+
+.error-list li {
+  margin-bottom: 4px;
+}
+
+.error-list li:last-child {
+  margin-bottom: 0;
+}
+
 // ── Confirmación ──────────────────────────────────────────────
 
 .confirmacion {
@@ -182,7 +220,10 @@
   text-align: center;
   padding: 40px 16px;
 
-  .confirmacion-icono { font-size: 56px; margin-bottom: 16px; }
+  .confirmacion-icono {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
 
   h1 {
     font-size: 22px;
@@ -233,7 +274,9 @@
   justify-content: space-between;
   margin-bottom: 12px;
 
-  h2 { margin: 0; }
+  h2 {
+    margin: 0;
+  }
 }
 
 .btn-ia {
@@ -251,8 +294,14 @@
   white-space: nowrap;
   transition: opacity 0.15s;
 
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-  &:not(:disabled):hover { opacity: 0.9; }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    opacity: 0.9;
+  }
 }
 
 // ── Textarea ──────────────────────────────────────────────────
@@ -272,8 +321,14 @@ textarea {
   line-height: 1.5;
   transition: border-color 0.15s;
 
-  &:focus { border-color: var(--ion-color-primary, #2dd36f); background: white; }
-  &::placeholder { color: #bbb; }
+  &:focus {
+    border-color: var(--ion-color-primary, #2dd36f);
+    background: white;
+  }
+
+  &::placeholder {
+    color: #bbb;
+  }
 }
 
 .char-count {
@@ -284,4 +339,10 @@ textarea {
   margin-top: 4px;
 }
 
-.error-msg.small { font-size: 12px; padding: 8px 12px; margin-bottom: 10px; }
+// ── Error pequeño (IA) ────────────────────────────────────────
+
+.error-msg.small {
+  font-size: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}

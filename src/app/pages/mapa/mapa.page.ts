@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { IonContent, IonBadge, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton } from '@ionic/angular/standalone';
 
 import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
 import { AsistenteMapaComponent } from 'src/app/components/asistente-mapa/asistente-mapa.component';

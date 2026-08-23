@@ -26,12 +26,16 @@ export class DashboardPage implements OnInit {
     this.error = false;
     try {
       this.datos = await this.supabaseService.cargarDashboard();
-    } catch (e) {
-      console.error('Error cargando dashboard:', e);
+    } catch (e: any) {
+      console.error(
+        'Error cargando dashboard:',
+        e
+      );
+
       this.error = true;
     } finally {
-      this.cargando = false;
-    }
+          this.cargando = false;
+        }
   }
 
   porcentaje(count: number): number {

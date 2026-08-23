@@ -22,20 +22,21 @@ export class ChatPage {
   chatKey = Date.now();
   mostrarBannerInstall = false;
   private installPrompt: any = null;
+  private static listenersRegistrados = false;
 
   constructor(private router: Router) {
-    // Captura el evento antes de que el navegador lo muestre
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      this.installPrompt = e;
-      this.mostrarBannerInstall = true;
-    });
-
-    // Oculta el banner si ya está instalada
-    window.addEventListener('appinstalled', () => {
-      this.mostrarBannerInstall = false;
-      this.installPrompt = null;
-    });
+    if (!ChatPage.listenersRegistrados) {
+      ChatPage.listenersRegistrados = true;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.installPrompt = e;
+        this.mostrarBannerInstall = true;
+      });
+      window.addEventListener('appinstalled', () => {
+        this.mostrarBannerInstall = false;
+        this.installPrompt = null;
+      });
+    }
   }
 
   ionViewWillEnter(): void {

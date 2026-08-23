@@ -1,36 +1,60 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import {
+  createClient,
+  SupabaseClient
+} from '@supabase/supabase-js';
+
 import { environment } from 'src/environments/environment';
-import { ElementoMobiliario } from '../models/mobiliario.model';
 
-
-export interface Propuesta {
-  id?: string;
+interface Propuesta {
   referencia: string;
-  nombre: string;
-  primer_apellido: string;
-  segundo_apellido?: string;
-  dni: string;
-  email: string;
   barrio: string;
   titulo: string;
-  detalle: string;
-  elementos: any[];
+
+  elementos: Array<{
+    tipo: string;
+    etiqueta: string;
+    emoji: string;
+    barrio?: string;
+    coordenadas?: {
+      lat: number;
+      lng: number;
+    };
+  }>;
+
   num_elementos: number;
-  created_at?: string;
+  created_at: string;
 }
 
 export interface DashboardData {
   total: number;
   totalElementos: number;
-  porTipo: { tipo: string; etiqueta: string; emoji: string; count: number }[];
-  porBarrio: { barrio: string; count: number }[];
-  porSemana: { semana: number; count: number }[];
+
+  porTipo: {
+    tipo: string;
+    etiqueta: string;
+    emoji: string;
+    count: number;
+  }[];
+
+  porBarrio: {
+    barrio: string;
+    count: number;
+  }[];
+
+  porSemana: {
+    semana: number;
+    count: number;
+  }[];
+
   ultimas: Propuesta[];
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class SupabaseService {
+
   private supabase: SupabaseClient;
 
   constructor() {
@@ -40,76 +64,78 @@ export class SupabaseService {
     );
   }
 
-
   /**
-   * Carga el dashboard desde la tabla propuestas (formularios enviados al ayuntamiento)
+   * Carga los datos del dashboard mediante la Edge Function.
+   *
+   * IMPORTANTE:
+   * Angular NO consulta directamente la tabla propuestas.
+   *
+   * La consulta se realiza dentro de la Edge Function
+   * utilizando la SUPABASE_SERVICE_ROLE_KEY.
    */
   async cargarDashboard(): Promise<DashboardData> {
-    const { data, error } = await this.supabase
-      .from('propuestas')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const url = `${this.getFunctionUrl()}/dashboard`;
+    const anonKey = this.getAnonKey();
 
-    if (error) throw error;
-    const rows: Propuesta[] = data ?? [];
-
-    const total = rows.length;
-    const totalElementos = rows.reduce((sum, r) => sum + (r.num_elementos ?? 0), 0);
-
-    // Por tipo — los elementos están en el campo JSONB elementos[]
-    const mapasTipo = new Map<string, { etiqueta: string; emoji: string; count: number }>();
-    rows.forEach(r => {
-      (r.elementos ?? []).forEach((e: any) => {
-        if (!mapasTipo.has(e.tipo)) {
-          mapasTipo.set(e.tipo, { etiqueta: e.etiqueta, emoji: e.emoji, count: 0 });
-        }
-        mapasTipo.get(e.tipo)!.count++;
-      });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': anonKey,
+        'Authorization': `Bearer ${anonKey}`,
+      },
     });
-    const porTipo = Array.from(mapasTipo.entries())
-      .map(([tipo, v]) => ({ tipo, ...v }))
-      .sort((a, b) => b.count - a.count);
 
-    // Por barrio — una propuesta = un barrio
-    const mapasBarrio = new Map<string, number>();
-    rows.forEach(r => mapasBarrio.set(r.barrio, (mapasBarrio.get(r.barrio) ?? 0) + 1));
-    const porBarrio = Array.from(mapasBarrio.entries())
-      .map(([barrio, count]) => ({ barrio, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
+    let json: any;
 
-    const porSemana = this.agruparPorSemana(rows);
-    const ultimas = rows.slice(0, 10);
-
-    return { total, totalElementos, porTipo, porBarrio, porSemana, ultimas };
-  }
-
-  private agruparPorSemana(rows: Propuesta[]): { semana: number; count: number }[] {
-    const ahora = new Date();
-    const resultado: { semana: number; count: number }[] = [];
-
-    for (let i = 4; i >= 0; i--) {
-      const inicio = new Date(ahora);
-      inicio.setDate(ahora.getDate() - (i + 1) * 7);
-      const fin = new Date(ahora);
-      fin.setDate(ahora.getDate() - i * 7);
-
-      const count = rows.filter(r => {
-        const fecha = new Date(r.created_at!);
-        return fecha >= inicio && fecha < fin;
-      }).length;
-
-      resultado.push({ semana: 5 - i, count });
+    try {
+      json = await response.json();
+    } catch {
+      throw new Error(
+        `El servidor devolvió una respuesta no válida. HTTP ${response.status}.`
+      );
     }
 
-    return resultado;
+    if (!response.ok || !json?.ok) {
+      console.error('Respuesta de Edge Function /dashboard:', json);
+
+      const detalle =
+        json?.detalle ||
+        json?.details ||
+        json?.message ||
+        json?.error;
+
+      throw new Error(
+        `${detalle ?? 'No se pudieron cargar los datos del dashboard.'} HTTP ${response.status}.`
+      );
+    }
+
+    if (!json.data) {
+      throw new Error(
+        'La respuesta del dashboard no contiene datos.'
+      );
+    }
+
+    return json.data as DashboardData;
   }
 
+  /**
+   * URL base de las Edge Functions.
+   */
   public getFunctionUrl(): string {
-    return `${environment.supabase.url}/functions/v1`;
+
+    return (
+      `${environment.supabase.url}/functions/v1`
+    );
   }
 
+  /**
+   * Anon key.
+   *
+   * Esta clave es pública.
+   */
   public getAnonKey(): string {
+
     return environment.supabase.anonKey;
   }
 }

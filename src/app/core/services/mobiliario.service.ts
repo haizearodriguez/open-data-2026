@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ElementoMobiliario, CATEGORIAS_ELEMENTOS } from '../models/mobiliario.model';
-import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class MobiliarioService {
   // Map para buscar por ID eficientemente
   private elementosMap = new Map<string, ElementoMobiliario>();
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor() {}
 
-  public async guardarElementoTemporal(elemento: ElementoMobiliario): Promise<void> {
+  public guardarElementoTemporal(elemento: ElementoMobiliario) :void {
     const id = elemento.id ?? `elem-${Date.now()}`;
     this.elementosMap.set(id, { ...elemento, id });
   }
