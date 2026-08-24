@@ -309,7 +309,7 @@ export class ResumenPage
 
           this.elementos.map(
             e =>
-              this.getEtiqueta(e.tipo)
+              this.obtenerCategoria(e.tipo)
           )
 
         )
@@ -326,48 +326,16 @@ export class ResumenPage
   // ELEMENTOS
   // ==================================================
 
-  getEmoji(
+
+  private obtenerCategoria(
     tipo: string
-  ): string {
+  ): CategoriaElemento | undefined {
 
-    return (
-
-      CATEGORIAS_ELEMENTOS.find(
-
-        c =>
-          c.tipo === tipo
-
-      )?.emoji
-
-      ??
-
-      '📍'
-
+    return CATEGORIAS_ELEMENTOS.find(
+      c => c.tipo === tipo
     );
-
   }
 
-
-  getEtiqueta(
-    tipo: string
-  ): string {
-
-    return (
-
-      CATEGORIAS_ELEMENTOS.find(
-
-        c =>
-          c.tipo === tipo
-
-      )?.etiqueta
-
-      ??
-
-      tipo
-
-    );
-
-  }
 
 
   // ==================================================
@@ -592,10 +560,10 @@ export class ResumenPage
         this.elementos.map(e => ({
 
           etiqueta:
-            this.getEtiqueta(e.tipo),
+            this.obtenerCategoria(e.tipo),
 
           emoji:
-            this.getEmoji(e.tipo),
+            this.obtenerCategoria(e.tipo),
 
           coordenadas:
             e.coordenadas
@@ -736,10 +704,10 @@ export class ResumenPage
           e.tipo,
 
         etiqueta:
-          this.getEtiqueta(e.tipo),
+          this.obtenerCategoria(e.tipo),
 
         emoji:
-          this.getEmoji(e.tipo),
+          this.obtenerCategoria(e.tipo),
 
         barrio:
           e.barrio,
@@ -912,17 +880,6 @@ export class ResumenPage
 
     this.navController
       .back();
-
-  }
-
-
-  /**
-   * Compatibilidad con versiones anteriores
-   * que llamasen a volver().
-   */
-  volver(): void {
-
-    this.volverAlMapa();
 
   }
 
