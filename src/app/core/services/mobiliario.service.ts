@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {ElementoMobiliario} from '../models/mobiliario.model';
+import { ElementoMobiliario } from '../models/mobiliario.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,12 +17,10 @@ export class MobiliarioService {
   private elementosMap =
     new Map<string, ElementoMobiliario>();
 
-  constructor() {}
-
   /**
    * Añade o actualiza un elemento de la propuesta.
    */
-  public guardarElementoTemporal(
+  guardarElementoTemporal(
     elemento: ElementoMobiliario
   ): void {
 
@@ -42,7 +40,7 @@ export class MobiliarioService {
   /**
    * Elimina un elemento concreto.
    */
-  public eliminarElementoPorId(
+  eliminarElementoPorId(
     id: string
   ): void {
 
@@ -53,7 +51,7 @@ export class MobiliarioService {
    * Devuelve todos los elementos
    * de la propuesta actual.
    */
-  public obtenerPropuestaActual():
+  obtenerPropuestaActual():
     ElementoMobiliario[] {
 
     return Array.from(
@@ -64,7 +62,7 @@ export class MobiliarioService {
   /**
    * Empieza una propuesta completamente nueva.
    */
-  public limpiarPropuesta(): void {
+  limpiarPropuesta(): void {
     this.elementosMap.clear();
   }
 }

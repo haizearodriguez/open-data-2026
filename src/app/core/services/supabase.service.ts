@@ -50,23 +50,28 @@ export interface DashboardData {
 })
 export class SupabaseService {
 
-  constructor(private functions: FunctionsService) {}
+  constructor(
+    private functions: FunctionsService
+  ) {}
 
   /**
    * Carga los datos del dashboard mediante la Edge Function.
    *
-   * IMPORTANTE:
-   * Angular NO consulta directamente la tabla propuestas.
-   *
-   * La consulta se realiza dentro de la Edge Function
-   * utilizando la SUPABASE_SERVICE_ROLE_KEY.
+   * Angular no consulta directamente la tabla propuestas.
    */
   async cargarDashboard(): Promise<DashboardData> {
-    const response = await this.functions.get<{ ok: boolean; data?: DashboardData }>('dashboard');
+
+    const response =
+      await this.functions.get<{
+        data?: DashboardData;
+      }>('dashboard');
+
     if (!response.data) {
-      throw new Error('La respuesta del dashboard no contiene datos.');
+      throw new Error(
+        'La respuesta del dashboard no contiene datos.'
+      );
     }
+
     return response.data;
   }
-
 }

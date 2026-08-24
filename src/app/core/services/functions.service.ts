@@ -1,32 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 
-export interface GenerarTextoResponse {
-  ok: boolean;
-  titulo?: string;
-  descripcion?: string;
-  [key: string]: unknown;
-}
-
-export interface AnalizarFotoResponse {
-  ok: boolean;
-  tipo?: string;
-  titulo?: string;
-  descripcion?: string;
-  [key: string]: unknown;
-}
-
-export interface EnviarPropuestaPayload {
-  nombre: string;
-  primerApellido: string;
-  segundoApellido?: string;
-  dni: string;
-  emailCiudadano: string;
-  barrio: string;
-  elementos: unknown[];
-  titulo: string;
-  detalle: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class FunctionsService {

@@ -36,7 +36,6 @@
   }
 }
 
-// ── Burbuja bot ───────────────────────────────────────────────
 
 .mensaje-bot {
   display: flex;
@@ -51,7 +50,6 @@
   p { margin: 0; font-size: 14px; line-height: 1.5; color: #333; }
 }
 
-// ── Captura ───────────────────────────────────────────────────
 
 .captura-zona {
   display: flex;
@@ -121,7 +119,6 @@
   }
 }
 
-// ── GPS ───────────────────────────────────────────────────────
 
 .gps-info {
   font-size: 12px;
@@ -139,7 +136,6 @@
   border-radius: 8px;
 }
 
-// ── Botones ───────────────────────────────────────────────────
 
 .btn-primary {
   width: 100%;
@@ -177,7 +173,6 @@
   color: #c62828;
 }
 
-// ── Resultado ─────────────────────────────────────────────────
 
 .foto-mini {
   width: 100%;
@@ -240,7 +235,6 @@
   .btn-primary { flex: 1; }
 }
 
-// ── Selector categoría ────────────────────────────────────────
 
 .btn-cambiar-cat {
   margin-left: auto;

@@ -309,7 +309,7 @@ export class ResumenPage
 
           this.elementos.map(
             e =>
-              this.obtenerCategoria(e.tipo)
+              this.getEtiqueta(e.tipo)
           )
 
         )
@@ -326,16 +326,50 @@ export class ResumenPage
   // ELEMENTOS
   // ==================================================
 
-
-  private obtenerCategoria(
+  getEmoji(
     tipo: string
-  ): CategoriaElemento | undefined {
+  ): string {
 
-    return CATEGORIAS_ELEMENTOS.find(
-      c => c.tipo === tipo
+    return (
+
+      CATEGORIAS_ELEMENTOS.find(
+
+        c =>
+          c.tipo === tipo
+
+      )?.emoji
+
+      ??
+
+      '📍'
+
     );
+
   }
 
+  
+
+
+  getEtiqueta(
+    tipo: string
+  ): string {
+
+    return (
+
+      CATEGORIAS_ELEMENTOS.find(
+
+        c =>
+          c.tipo === tipo
+
+      )?.etiqueta
+
+      ??
+
+      tipo
+
+    );
+
+  }
 
 
   // ==================================================
@@ -560,10 +594,10 @@ export class ResumenPage
         this.elementos.map(e => ({
 
           etiqueta:
-            this.obtenerCategoria(e.tipo),
+            this.getEtiqueta(e.tipo),
 
           emoji:
-            this.obtenerCategoria(e.tipo),
+            this.getEmoji(e.tipo),
 
           coordenadas:
             e.coordenadas
@@ -704,10 +738,10 @@ export class ResumenPage
           e.tipo,
 
         etiqueta:
-          this.obtenerCategoria(e.tipo),
+          this.getEtiqueta(e.tipo),
 
         emoji:
-          this.obtenerCategoria(e.tipo),
+          this.getEmoji(e.tipo),
 
         barrio:
           e.barrio,
