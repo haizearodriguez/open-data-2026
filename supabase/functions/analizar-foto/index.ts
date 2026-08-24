@@ -1,3 +1,5 @@
+/// <reference lib="deno.ns" />
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
@@ -100,17 +102,10 @@ function extraerJson(texto: string): ResultadoIA {
 
   let limpio = texto.trim();
 
-  // --------------------------------------------------
-  // Eliminar razonamiento <think>...</think>
-  // --------------------------------------------------
-
   limpio = limpio
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .trim();
 
-  // --------------------------------------------------
-  // Eliminar posibles bloques Markdown
-  // --------------------------------------------------
 
   limpio = limpio
     .replace(/^```json\s*/i, '')
@@ -118,20 +113,12 @@ function extraerJson(texto: string): ResultadoIA {
     .replace(/\s*```$/i, '')
     .trim();
 
-  // --------------------------------------------------
-  // Primer intento:
-  // respuesta completa = JSON
-  // --------------------------------------------------
-
   try {
     return JSON.parse(limpio) as ResultadoIA;
   } catch {
     // Continuamos buscando el objeto JSON.
   }
 
-  // --------------------------------------------------
-  // Buscar el primer objeto JSON
-  // --------------------------------------------------
 
   const inicio = limpio.indexOf('{');
   const fin = limpio.lastIndexOf('}');
@@ -166,11 +153,8 @@ function extraerJson(texto: string): ResultadoIA {
   }
 }
 
-serve(async (req) => {
+  serve(async (req) => {
 
-  // --------------------------------------------------
-  // CORS
-  // --------------------------------------------------
 
   if (req.method === 'OPTIONS') {
     return new Response(
@@ -181,9 +165,7 @@ serve(async (req) => {
     );
   }
 
-  // --------------------------------------------------
-  // Método
-  // --------------------------------------------------
+
 
   if (req.method !== 'POST') {
     return respuestaJson(
@@ -197,10 +179,7 @@ serve(async (req) => {
 
   try {
 
-    // ------------------------------------------------
-    // API KEY
-    // ------------------------------------------------
-
+ 
     if (!GROQ_API_KEY) {
 
 
@@ -215,9 +194,7 @@ serve(async (req) => {
       );
     }
 
-    // ------------------------------------------------
-    // Payload
-    // ------------------------------------------------
+
 
     let payload: {
       imagenBase64?: string;
@@ -262,9 +239,7 @@ serve(async (req) => {
       );
     }
 
-    // ------------------------------------------------
-    // Categorías
-    // ------------------------------------------------
+
 
     const categoriasTexto =
       CATEGORIAS
@@ -274,9 +249,6 @@ serve(async (req) => {
         )
         .join('\n');
 
-    // ------------------------------------------------
-    // Prompt
-    // ------------------------------------------------
 
     const prompt = `
 Eres un asistente de gestión urbana para el Ayuntamiento de Vitoria-Gasteiz.
@@ -333,16 +305,10 @@ No utilices Markdown.
 No utilices bloques de código.
 `.trim();
 
-    // ------------------------------------------------
-    // Imagen
-    // ------------------------------------------------
 
     const imagenUrl =
       `data:image/jpeg;base64,${imagenBase64}`;
 
-    // ------------------------------------------------
-    // Groq
-    // ------------------------------------------------
 
 
 
@@ -395,9 +361,6 @@ No utilices bloques de código.
 
             reasoning_effort: 'none',
 
-            // ------------------------------------------------
-            // JSON mode
-            // ------------------------------------------------
 
             response_format: {
               type: 'json_object',
@@ -410,9 +373,7 @@ No utilices bloques de código.
         }
       );
 
-    // ------------------------------------------------
-    // Error Groq
-    // ------------------------------------------------
+
 
     if (!res.ok) {
 
@@ -431,9 +392,6 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Respuesta Groq
-    // ------------------------------------------------
 
     const data =
       await res.json();
@@ -463,9 +421,6 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Parsear JSON
-    // ------------------------------------------------
 
     let resultado: ResultadoIA;
 
@@ -492,9 +447,6 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Validar resultado
-    // ------------------------------------------------
 
     if (
       typeof resultado.tipo !== 'string' ||
@@ -517,9 +469,6 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Categoría
-    // ------------------------------------------------
 
     const categoria =
       CATEGORIAS.find(
@@ -544,18 +493,13 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Título
-    // ------------------------------------------------
 
     const titulo =
       resultado.titulo
         .trim()
         .substring(0, 80);
 
-    // ------------------------------------------------
-    // Descripción
-    // ------------------------------------------------
+
 
     const descripcion =
       resultado.descripcion
@@ -574,9 +518,6 @@ No utilices bloques de código.
       );
     }
 
-    // ------------------------------------------------
-    // Respuesta final
-    // ------------------------------------------------
 
 
     return respuestaJson({

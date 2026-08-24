@@ -1,3 +1,5 @@
+/// <reference lib="deno.ns" />
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
@@ -526,9 +528,7 @@ INSTRUCCIONES:
           contenido.trim()
         );
 
-    } catch (error) {
-
-
+    } catch {
 
       return respuestaJson(
         {
