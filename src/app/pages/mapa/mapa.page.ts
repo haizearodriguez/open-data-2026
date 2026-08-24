@@ -262,7 +262,6 @@ export class MapaPage implements OnDestroy {
           this.mapaService
             .cargarCapaParaCategoria(
               this.categoriaActiva.tipo,
-              this.datosIniciales.barrio,
               rings
             );
         }
@@ -415,7 +414,6 @@ export class MapaPage implements OnDestroy {
       this.mapaService
         .cargarCapaParaCategoria(
           cat.tipo,
-          this.datosIniciales.barrio,
           this.ringsActivos
         );
     }

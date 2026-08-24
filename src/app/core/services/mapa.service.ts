@@ -364,10 +364,6 @@ export class MapaService {
     this.marcadores.splice(idx, 1);
   }
 
-  public getTotalMarcadores(): number {
-    return this.marcadores.length;
-  }
-
   // ─── Marcadores ───────────────────────────────────────────────────────────────
 
   public agregarMarcadorMobiliario(
@@ -407,10 +403,10 @@ export class MapaService {
 
   // ─── Capas de categoría ───────────────────────────────────────────────────────
 
-  public cargarCapaParaCategoria(tipo: TipoElemento, barrio: string, rings: [number, number][][]): void {
+  public cargarCapaParaCategoria(tipo: TipoElemento, rings: [number, number][][]): void {
     this.limpiarCapasCategoria();
     switch (tipo) {
-      case 'zona-verde': this.cargarCapaArboladoVitoria(barrio, rings); break;
+      case 'zona-verde': this.cargarCapaArboladoVitoria(rings); break;
       case 'alumbrado': console.info('[MapaService] Capa de alumbrado pendiente de datos'); break;
       case 'mobiliario': console.info('[MapaService] Capa de mobiliario urbano pendiente de datos'); break;
       default: break;
@@ -450,7 +446,7 @@ export class MapaService {
     this.mapa.addLayer({ id: 'capa-barrio-borde', type: 'line', source: 'barrios-vitoria-source', paint: { 'line-color': '#00e676', 'line-width': 5, 'line-opacity': 0.9 } });
   }
 
-  private async cargarCapaArboladoVitoria(nombreBarrio: string, ringsPoligono: [number, number][][]): Promise<void> {
+  private async cargarCapaArboladoVitoria(ringsPoligono: [number, number][][]): Promise<void> {
     try {
       const resArbolado = await fetch('assets/data/arbolado-vitoria.json');
       const arboladoOriginal: ArbolVitoriaGeoJSON = await resArbolado.json();

@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  ElementoMobiliario
-} from '../models/mobiliario.model';
+import {ElementoMobiliario} from '../models/mobiliario.model';
 
 @Injectable({
   providedIn: 'root'
