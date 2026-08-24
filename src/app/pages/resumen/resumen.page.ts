@@ -1,14 +1,41 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  Component,
+  OnInit
+} from '@angular/core';
+
+import {
+  CommonModule
+} from '@angular/common';
+
+import {
+  FormsModule
+} from '@angular/forms';
+
+import {
+  Router
+} from '@angular/router';
+
+import {
+  NavController
+} from '@ionic/angular';
+
 import {
   IonContent,
   IonSpinner
 } from '@ionic/angular/standalone';
 
-import { MobiliarioService } from 'src/app/core/services/mobiliario.service';
-import { SupabaseService } from 'src/app/core/services/supabase.service';
+import {
+  MobiliarioService
+} from 'src/app/core/services/mobiliario.service';
+
+import {
+  MapaService
+} from 'src/app/core/services/mapa.service';
+
+import {
+  FunctionsError,
+  FunctionsService
+} from 'src/app/core/services/functions.service';
 
 import {
   ElementoMobiliario,
@@ -16,444 +43,633 @@ import {
   CategoriaElemento
 } from 'src/app/core/models/mobiliario.model';
 
+
 @Component({
   selector: 'app-resumen',
-  templateUrl: './resumen.page.html',
-  styleUrls: ['./resumen.page.scss'],
+
+  templateUrl:
+    './resumen.page.html',
+
+  styleUrls:
+    ['./resumen.page.scss'],
+
   standalone: true,
+
   imports: [
+
     CommonModule,
+
     FormsModule,
+
     IonContent,
+
     IonSpinner
+
   ]
 })
-export class ResumenPage implements OnInit {
+export class ResumenPage
+  implements OnInit {
 
-  elementos: ElementoMobiliario[] = [];
 
-  barrio = '';
-  desdeFoto = false;
+  elementos:
+    ElementoMobiliario[] = [];
 
-  nombre = '';
-  primerApellido = '';
-  segundoApellido = '';
-  dni = '';
-  emailCiudadano = '';
 
-  titulo = '';
-  descripcion = '';
+  barrio =
+    '';
 
-  enviando = false;
-  generando = false;
 
-  error = '';
-  errorIa = '';
+  desdeFoto =
+    false;
+
+
+  nombre =
+    '';
+
+
+  primerApellido =
+    '';
+
+
+  segundoApellido =
+    '';
+
+
+  dni =
+    '';
+
+
+  emailCiudadano =
+    '';
+
+
+  titulo =
+    '';
+
+
+  descripcion =
+    '';
+
+
+  enviando =
+    false;
+
+
+  generando =
+    false;
+
+
+  error =
+    '';
+
+
+  errorIa =
+    '';
+
 
   /**
-   * Errores concretos devueltos por el backend.
-   *
-   * Ejemplo:
-   * [
-   *   'El DNI/NIE no tiene un formato válido.',
-   *   'El email no tiene un formato válido.'
-   * ]
+   * Errores concretos devueltos por backend.
    */
-  erroresValidacion: string[] = [];
+  erroresValidacion:
+    string[] = [];
 
-  referencia: string | null = null;
+
+  referencia:
+    string | null = null;
+
 
   constructor(
-    private mobiliarioService: MobiliarioService,
-    private supabaseService: SupabaseService,
-    private router: Router
+
+    private mobiliarioService:
+      MobiliarioService,
+
+    private functions:
+      FunctionsService,
+
+    private router:
+      Router,
+
+    private navController:
+      NavController,
+
+    private mapaService:
+      MapaService
+
   ) {}
 
-  ngOnInit() {
-    const state = history.state;
+
+  // ==================================================
+  // INICIO
+  // ==================================================
+
+  ngOnInit(): void {
+
+    const state =
+      history.state;
+
 
     this.desdeFoto =
       state?.desdeFoto ?? false;
 
-    if (this.desdeFoto) {
 
-      // Viene de la página de foto.
-      // Los datos ya vienen pre-rellenados.
+    /*
+     * Flujo de fotografía.
+     *
+     * No modificamos el flujo del mapa.
+     */
+    if (
+      this.desdeFoto
+    ) {
 
-      const categoria: CategoriaElemento =
+      const categoria:
+        CategoriaElemento =
         state.categoria;
+
 
       const coordenadas =
         state.coordenadas ?? {
-          lat: 42.84695,
-          lng: -2.67268
+
+          lat:
+            42.84695,
+
+          lng:
+            -2.67268
+
         };
+
 
       const id =
         `foto-${Date.now()}`;
 
-      this.mobiliarioService
-        .guardarElementoTemporal({
-          id,
-          tipo: categoria.tipo,
-          barrio: 'Vitoria-Gasteiz',
-          coordenadas,
-          fechaCreacion: new Date()
-        });
+
+      if (
+        categoria
+      ) {
+
+        this.mobiliarioService
+          .guardarElementoTemporal({
+
+            id,
+
+            tipo:
+              categoria.tipo,
+
+            barrio:
+              'Vitoria-Gasteiz',
+
+            coordenadas,
+
+            fechaCreacion:
+              new Date()
+
+          });
+
+      }
+
 
       this.titulo =
         state.titulo ?? '';
 
+
       this.descripcion =
         state.descripcion ?? '';
+
     }
+
+
+    this.cargarPropuesta();
+
+  }
+
+
+  /**
+   * Recarga la propuesta actual.
+   */
+  private cargarPropuesta(): void {
 
     this.elementos =
       this.mobiliarioService
         .obtenerPropuestaActual();
 
+
     this.barrio =
       this.elementos[0]?.barrio ?? '';
 
-    // Si no viene un título generado previamente,
-    // creamos uno automáticamente.
 
-    if (!this.titulo) {
+    /*
+     * Generamos título automático solamente
+     * si todavía no existe.
+     */
+    if (
+      !this.titulo &&
+      this.elementos.length > 0
+    ) {
 
       const tipos = [
+
         ...new Set(
+
           this.elementos.map(
-            e => this.getEtiqueta(e.tipo)
+
+            e =>
+              this.getEtiqueta(e.tipo)
+
           )
+
         )
+
       ];
+
 
       this.titulo =
         `Solicitud de mejora en ${this.barrio}: ${tipos.join(', ')}`;
+
     }
+
   }
 
-  // --------------------------------------------------
+
+  // ==================================================
   // ELEMENTOS
-  // --------------------------------------------------
+  // ==================================================
 
-  getEmoji(tipo: string): string {
+  getEmoji(
+    tipo: string
+  ): string {
+
     return (
+
       CATEGORIAS_ELEMENTOS.find(
-        c => c.tipo === tipo
-      )?.emoji ?? '📍'
+
+        c =>
+          c.tipo === tipo
+
+      )?.emoji
+
+      ??
+
+      '📍'
+
     );
+
   }
 
-  getEtiqueta(tipo: string): string {
+
+  getEtiqueta(
+    tipo: string
+  ): string {
+
     return (
+
       CATEGORIAS_ELEMENTOS.find(
-        c => c.tipo === tipo
-      )?.etiqueta ?? tipo
+
+        c =>
+          c.tipo === tipo
+
+      )?.etiqueta
+
+      ??
+
+      tipo
+
     );
+
   }
 
-  // --------------------------------------------------
-  // VALIDACIÓN FRONTEND
-  // --------------------------------------------------
 
-  formularioValido(): boolean {
+  // ==================================================
+  // VALIDACIÓN
+  // ==================================================
+
+  formularioValido():
+    boolean {
 
     return !!(
+
       this.nombre.trim() &&
+
       this.primerApellido.trim() &&
+
       this.dni.trim() &&
+
       this.emailCiudadano.trim() &&
+
       this.titulo.trim() &&
+
       this.descripcion.trim()
+
     );
+
   }
 
-  /**
-   * Validación básica del formulario para mejorar
-   * la experiencia de usuario.
-   *
-   * La validación definitiva siempre se hace
-   * nuevamente en el backend.
-   */
-  obtenerErroresFormulario(): string[] {
 
-    const errores: string[] = [];
+  obtenerErroresFormulario():
+    string[] {
+
+    const errores:
+      string[] = [];
+
 
     const nombre =
       this.nombre.trim();
 
+
     const primerApellido =
       this.primerApellido.trim();
+
 
     const segundoApellido =
       this.segundoApellido.trim();
 
+
     const dni =
-      this.dni.trim().toUpperCase();
+      this.dni
+        .trim()
+        .toUpperCase();
+
 
     const email =
       this.emailCiudadano.trim();
 
+
     const titulo =
       this.titulo.trim();
+
 
     const descripcion =
       this.descripcion.trim();
 
+
+    // -----------------------------------------------
     // Nombre
+    // -----------------------------------------------
 
     if (
       nombre.length < 2 ||
       nombre.length > 100
     ) {
+
       errores.push(
         'El nombre debe tener entre 2 y 100 caracteres.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Primer apellido
+    // -----------------------------------------------
 
     if (
       primerApellido.length < 2 ||
       primerApellido.length > 100
     ) {
+
       errores.push(
         'El primer apellido debe tener entre 2 y 100 caracteres.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Segundo apellido
+    // -----------------------------------------------
 
     if (
       segundoApellido &&
+
       (
         segundoApellido.length < 2 ||
+
         segundoApellido.length > 100
+
       )
     ) {
+
       errores.push(
         'El segundo apellido debe tener entre 2 y 100 caracteres.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // DNI / NIE
+    // -----------------------------------------------
 
     if (
-      !/^[0-9XYZ][0-9]{7}[A-Z]$/.test(dni)
+      !/^[0-9XYZ][0-9]{7}[A-Z]$/
+        .test(dni)
     ) {
+
       errores.push(
         'El DNI/NIE no tiene un formato válido.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Email
+    // -----------------------------------------------
 
     if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        .test(email)
     ) {
+
       errores.push(
         'El email no tiene un formato válido.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Título
+    // -----------------------------------------------
 
     if (
       titulo.length < 5 ||
       titulo.length > 200
     ) {
+
       errores.push(
         'El título debe tener entre 5 y 200 caracteres.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Descripción
+    // -----------------------------------------------
 
     if (
       descripcion.length < 10 ||
       descripcion.length > 5000
     ) {
+
       errores.push(
         'La descripción debe tener entre 10 y 5000 caracteres.'
       );
+
     }
 
+
+    // -----------------------------------------------
     // Elementos
+    // -----------------------------------------------
 
     if (
       this.elementos.length < 1
     ) {
+
       errores.push(
         'Debes seleccionar al menos un elemento.'
       );
+
     }
 
+
     return errores;
+
   }
 
-  // --------------------------------------------------
-  // IA
-  // --------------------------------------------------
 
-  async generarConIa(): Promise<void> {
-    this.generando = true;
-    this.errorIa = '';
+  // ==================================================
+  // IA
+  // ==================================================
+
+  async generarConIa():
+    Promise<void> {
+
+    this.generando =
+      true;
+
+
+    this.errorIa =
+      '';
+
 
     try {
-      const url =
-        `${this.supabaseService.getFunctionUrl()}/generar-texto`;
 
-      const elementosPayload = this.elementos.map(e => ({
-        etiqueta: this.getEtiqueta(e.tipo),
-        emoji: this.getEmoji(e.tipo),
-        coordenadas: e.coordenadas,
-      }));
+      const elementosPayload =
+        this.elementos.map(e => ({
 
-      const res = await fetch(url, {
-        method: 'POST',
+          etiqueta:
+            this.getEtiqueta(e.tipo),
 
-        headers: {
-          'Content-Type': 'application/json',
+          emoji:
+            this.getEmoji(e.tipo),
 
-          'apikey':
-            this.supabaseService.getAnonKey(),
+          coordenadas:
+            e.coordenadas
 
-          'Authorization':
-            `Bearer ${this.supabaseService.getAnonKey()}`,
-        },
+        }));
 
-        body: JSON.stringify({
-          barrio: this.barrio,
-          elementos: elementosPayload,
-        }),
-      });
 
-      // ----------------------------------------------
-      // Intentamos leer JSON
-      // ----------------------------------------------
+      const json =
+        await this.functions.post<{
 
-      let json: any;
+          ok:
+            boolean;
 
-      try {
-        json = await res.json();
-      } catch {
-        throw new Error(
-          `El servidor devolvió una respuesta no válida. HTTP ${res.status}.`
-        );
-      }
+          titulo?:
+            string;
 
-      // ----------------------------------------------
-      // Error de la Edge Function / Groq
-      // ----------------------------------------------
+          descripcion?:
+            string;
 
-      if (!res.ok || !json?.ok) {
+        }>(
 
-        console.error(
-          'Error completo de generar-texto:',
-          json
+          'generar-texto',
+
+          {
+
+            barrio:
+              this.barrio,
+
+            elementos:
+              elementosPayload
+
+          }
+
         );
 
-        const errores: string[] = [];
-
-        if (json?.error) {
-          errores.push(
-            `Error: ${json.error}`
-          );
-        }
-
-        if (json?.codigo) {
-          errores.push(
-            `Código: ${json.codigo}`
-          );
-        }
-
-        if (json?.detalle) {
-          errores.push(
-            `Detalle: ${json.detalle}`
-          );
-        }
-
-        if (json?.detalles) {
-          errores.push(
-            `Detalles: ${
-              Array.isArray(json.detalles)
-                ? json.detalles.join(', ')
-                : json.detalles
-            }`
-          );
-        }
-
-        throw new Error(
-          errores.length > 0
-            ? errores.join(' | ')
-            : 'No se pudo generar el texto.'
-        );
-      }
-
-      // ----------------------------------------------
-      // Comprobar respuesta de la IA
-      // ----------------------------------------------
 
       if (
-        typeof json.titulo !== 'string' ||
-        typeof json.descripcion !== 'string'
-      ) {
+        typeof json.titulo !==
+          'string' ||
 
-        console.error(
-          'Respuesta IA inesperada:',
-          json
-        );
+        typeof json.descripcion !==
+          'string'
+      ) {
 
         throw new Error(
           'La IA no devolvió un título y una descripción válidos.'
         );
+
       }
 
-      // ----------------------------------------------
-      // Aplicar resultado
-      // ----------------------------------------------
 
       this.titulo =
         json.titulo.trim();
 
+
       this.descripcion =
         json.descripcion.trim();
 
-    } catch (e: any) {
 
-      console.error(
-        'Error generarConIa:',
-        e
-      );
+    } catch (
+      e: unknown
+    ) {
 
       this.errorIa =
-        e?.message ??
-        'No se pudo generar el texto. Inténtalo de nuevo.';
+
+        e instanceof Error
+
+          ? e.message
+
+          : 'No se pudo generar el texto. Inténtalo de nuevo.';
+
 
     } finally {
 
-      this.generando = false;
+      this.generando =
+        false;
+
     }
+
   }
 
-  // --------------------------------------------------
-  // ENVÍO
-  // --------------------------------------------------
 
-  async enviar() {
+  // ==================================================
+  // ENVÍO DEFINITIVO
+  // ==================================================
 
-    // Limpiamos errores anteriores.
+  async enviar():
+    Promise<void> {
 
-    this.error = '';
-    this.erroresValidacion = [];
+    /*
+     * Limpiar errores anteriores.
+     */
+    this.error =
+      '';
 
-    // ----------------------------------------------
-    // Validación rápida en frontend
-    // ----------------------------------------------
+
+    this.erroresValidacion =
+      [];
+
+
+    // -----------------------------------------------
+    // Validación
+    // -----------------------------------------------
 
     const erroresFormulario =
       this.obtenerErroresFormulario();
+
 
     if (
       erroresFormulario.length > 0
@@ -462,21 +678,29 @@ export class ResumenPage implements OnInit {
       this.error =
         'Revisa los datos introducidos.';
 
+
       this.erroresValidacion =
         erroresFormulario;
 
+
       return;
+
     }
 
-    // ----------------------------------------------
-    // Estado de envío
-    // ----------------------------------------------
 
-    this.enviando = true;
+    this.enviando =
+      true;
+
+
+    // -----------------------------------------------
+    // Payload
+    // -----------------------------------------------
 
     const elementosConEmoji =
       this.elementos.map(e => ({
-        tipo: e.tipo,
+
+        tipo:
+          e.tipo,
 
         etiqueta:
           this.getEtiqueta(e.tipo),
@@ -488,28 +712,33 @@ export class ResumenPage implements OnInit {
           e.barrio,
 
         coordenadas:
-          e.coordenadas,
+          e.coordenadas
+
       }));
+
 
     try {
 
-      const url =
-        `${this.supabaseService.getFunctionUrl()}/enviar-propuesta`;
+      const json =
+        await this.functions.post<{
 
-      const res =
-        await fetch(url, {
-          method: 'POST',
+          ok:
+            boolean;
 
-          headers: {
-            'Content-Type':
-              'application/json',
+          referencia?:
+            string;
 
-            'apikey':
-              this.supabaseService
-                .getAnonKey(),
-          },
+          error?:
+            string;
 
-          body: JSON.stringify({
+          detalles?:
+            string[];
+
+        }>(
+
+          'enviar-propuesta',
+
+          {
 
             nombre:
               this.nombre.trim(),
@@ -518,7 +747,9 @@ export class ResumenPage implements OnInit {
               this.primerApellido.trim(),
 
             segundoApellido:
-              this.segundoApellido.trim() ||
+              this.segundoApellido
+                .trim() ||
+
               undefined,
 
             dni:
@@ -541,73 +772,152 @@ export class ResumenPage implements OnInit {
               this.titulo.trim(),
 
             detalle:
-              this.descripcion.trim(),
-          }),
-        });
+              this.descripcion.trim()
 
-      const json =
-        await res.json();
+          }
 
-      // --------------------------------------------
-      // Error devuelto por backend
-      // --------------------------------------------
+        );
 
-      if (
-        !res.ok ||
-        !json.ok
-      ) {
 
-        if (
-          Array.isArray(
-            json.detalles
-          )
-        ) {
-          this.erroresValidacion =
-            json.detalles;
-        }
-
-        this.error =
-          json.error ??
-          'No se pudo enviar la propuesta.';
-
-        return;
-      }
-
-      // --------------------------------------------
-      // Envío correcto
-      // --------------------------------------------
+      // ---------------------------------------------
+      // ENVÍO CORRECTO
+      // ---------------------------------------------
 
       this.referencia =
-        json.referencia;
+        json.referencia ?? null;
 
+
+      /*
+       * Aquí sí terminamos la propuesta.
+       */
       this.mobiliarioService
         .limpiarPropuesta();
 
-    } catch (e) {
+      /*
+       * La propuesta ya terminó.
+       * A partir de aquí el mapa puede destruirse.
+       */
+      this.mapaService
+        .finalizarPropuesta();
 
-      // Error de red, servidor inaccesible,
-      // respuesta no JSON, etc.
+
+      /*
+       * Y SOLO aquí destruimos el mapa.
+       *
+       * Esta es la segunda situación autorizada
+       * para destruirlo.
+       */
+      this.mapaService
+        .destruirMapa();
+
+
+    } catch (
+      e: unknown
+    ) {
+
+      /*
+       * Si falla el envío NO destruimos
+       * el mapa ni limpiamos la propuesta.
+       */
+      if (
+        e instanceof FunctionsError &&
+
+        Array.isArray(
+          e.payload['detalles']
+        )
+      ) {
+
+        this.erroresValidacion =
+          e.payload['detalles']
+            .filter(
+
+              (
+                item
+              ): item is string =>
+
+                typeof item ===
+                'string'
+
+            );
+
+      }
+
 
       this.error =
-        'No se pudo conectar con el servidor. ' +
-        'Inténtalo de nuevo.';
 
-      console.error(
-        'Error enviando propuesta:',
-        e
-      );
+        e instanceof Error
+
+          ? e.message
+
+          : 'No se pudo enviar la propuesta.';
+
 
     } finally {
 
-      this.enviando = false;
+      this.enviando =
+        false;
+
     }
+
   }
 
-  // --------------------------------------------------
-  // NAVEGACIÓN
-  // --------------------------------------------------
 
-  volver() {
-    history.back();
+  // ==================================================
+  // VOLVER AL MAPA
+  // ==================================================
+
+  /**
+   * Vuelve a la instancia de MapaPage que ya existe.
+   *
+   * NO hacemos:
+   *
+   * router.navigate(['/mapa'])
+   *
+   * porque eso vuelve a construir el mapa.
+   */
+  volverAlMapa(): void {
+
+    this.navController
+      .back();
+
   }
+
+
+  /**
+   * Compatibilidad con versiones anteriores
+   * que llamasen a volver().
+   */
+  volver(): void {
+
+    this.volverAlMapa();
+
+  }
+
+
+  // ==================================================
+  // VOLVER AL CHAT
+  // ==================================================
+
+  /**
+   * Se ejecuta después de que la propuesta
+   * ya haya sido enviada correctamente.
+   *
+   * El mapa ya fue destruido en enviar().
+   */
+  volverAlChat(): void {
+
+    this.router.navigate(
+
+      ['/chat'],
+
+      {
+        state: {
+          nuevaPropuesta: true
+        }
+      }
+
+    );
+
+  }
+
 }

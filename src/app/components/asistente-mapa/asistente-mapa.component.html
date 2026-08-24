@@ -1,21 +1,78 @@
 <!-- Sin overlay -->
+
 <div class="asistente-panel">
+
   <div class="asistente-header">
-    <button class="btn-cerrar" (click)="onCerrar()">✕</button>
+
+    <button
+      class="btn-cerrar"
+      (click)="onCerrar()"
+    >
+
+      ✕
+
+    </button>
+
   </div>
+
+
   <div class="asistente-body centered">
+
     <div class="mensaje-bot">
-      <span class="avatar">🤖</span>
+
+      <span class="avatar">
+        🤖
+      </span>
+
+
       <div>
+
         <p *ngIf="categoriaActiva">
-          Has elegido <strong>{{ categoriaActiva.emoji }} {{ categoriaActiva.etiqueta }}</strong>.
+
+          Has elegido
+
+          <strong>
+
+            {{ categoriaActiva.emoji }}
+
+            {{ categoriaActiva.etiqueta }}
+
+          </strong>.
+
         </p>
-        <p>Toca el mapa en el lugar exacto donde quieres colocarlo.</p>
+
+
+        <p>
+
+          Toca el mapa en el lugar exacto
+          donde quieres colocarlo.
+
+        </p>
+
       </div>
+
     </div>
+
+
     <div class="instruccion-clic">
-      <span class="icono-tap">👆</span>
-      <p><strong>Toca el mapa</strong> para colocar el elemento.</p>
+
+      <span class="icono-tap">
+        👆
+      </span>
+
+
+      <p>
+
+        <strong>
+          Toca el mapa
+        </strong>
+
+        para colocar el elemento.
+
+      </p>
+
     </div>
+
   </div>
+
 </div>

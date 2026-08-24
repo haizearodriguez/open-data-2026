@@ -1,30 +1,63 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
+
+    <ion-buttons slot="end">
       <app-idioma-selector></app-idioma-selector>
     </ion-buttons>
-    <ion-title>{{ datosIniciales?.barrio ?? 'Mapa' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" style="color:white;font-size:13px;font-weight:500;" (click)="nuevaPropuesta()">
-        Nueva propuesta →
+
+    <ion-title>
+      {{ datosIniciales?.barrio ?? 'Mapa' }}
+    </ion-title>
+
+    <ion-buttons slot="start">
+      <ion-button
+        fill="clear"
+        style="color:white;font-size:13px;font-weight:500;"
+        (click)="nuevaPropuesta()">
+        Volver
       </ion-button>
     </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
+
 <ion-content [fullscreen]="true">
+
   <div class="map-container-wrapper">
 
-    <div #mapContainer id="map" style="width: 100%; height: 100%;"></div>
-
-    <div *ngIf="categoriaActiva && !asistenteVisible" class="aviso-edicion">
-      {{ categoriaActiva.emoji }} Toca el mapa para colocar: {{ categoriaActiva.etiqueta }}
+    <!-- MAPA -->
+    <div
+      #mapContainer
+      id="map"
+      style="width: 100%; height: 100%;">
     </div>
 
-    <div *ngIf="modoEliminarActivo" class="aviso-eliminar">
+
+    <!-- AVISO CUANDO HAY UNA CATEGORÍA SELECCIONADA -->
+    <div
+      *ngIf="categoriaActiva && !asistenteVisible"
+      class="aviso-edicion">
+
+      {{ categoriaActiva.emoji }}
+
+      Toca el mapa para colocar:
+      {{ categoriaActiva.etiqueta }}
+
+    </div>
+
+
+    <!-- MODO ELIMINAR -->
+    <div
+      *ngIf="modoEliminarActivo"
+      class="aviso-eliminar">
+
       🗑️ Toca el elemento que quieres eliminar
+
     </div>
 
+
+    <!-- ASISTENTE -->
     <app-asistente-mapa
       [hidden]="!asistenteVisible"
       [elementosColocados]="elementosColocados"
@@ -32,28 +65,84 @@
       (cerrar)="onAsistenteCerrado()">
     </app-asistente-mapa>
 
+
+    <!-- SELECTOR DE CATEGORÍAS -->
     <app-selector-rapido
       *ngIf="selectorRapidoVisible"
       (categoriaElegida)="onCategoriaRapidaElegida($event)"
       (cerrar)="selectorRapidoVisible = false">
     </app-selector-rapido>
 
-    <div *ngIf="datosIniciales && !asistenteVisible && !selectorRapidoVisible" class="barra-flotante">
-      <button class="barra-btn" (click)="selectorRapidoVisible = true">
-        <span class="barra-icono">➕</span>
-        <span class="barra-label">Añadir</span>
+
+    <!-- BARRA INFERIOR -->
+    <div
+      *ngIf="
+        datosIniciales &&
+        !asistenteVisible &&
+        !selectorRapidoVisible
+      "
+      class="barra-flotante">
+
+      <!-- AÑADIR -->
+      <button
+        class="barra-btn"
+        (click)="selectorRapidoVisible = true">
+
+        <span class="barra-icono">
+          ➕
+        </span>
+
+        <span class="barra-label">
+          Añadir
+        </span>
+
       </button>
-      <button class="barra-btn" [class.danger-active]="modoEliminarActivo"
-        [disabled]="elementosColocados === 0" (click)="onEliminar()">
-        <span class="barra-icono">🗑️</span>
-        <span class="barra-label">Eliminar</span>
+
+
+      <!-- ELIMINAR -->
+      <button
+        class="barra-btn"
+        [class.danger-active]="modoEliminarActivo"
+        [disabled]="elementosColocados === 0"
+        (click)="onEliminar()">
+
+        <span class="barra-icono">
+          🗑️
+        </span>
+
+        <span class="barra-label">
+          Eliminar
+        </span>
+
       </button>
-      <button class="barra-btn primary" [disabled]="elementosColocados === 0" (click)="onEnviar()">
-        <span class="barra-icono">📤</span>
-        <span class="barra-label">Enviar</span>
-        <span class="barra-badge" *ngIf="elementosColocados > 0">{{ elementosColocados }}</span>
+
+
+      <!-- ENVIAR -->
+      <button
+        class="barra-btn primary"
+        [disabled]="elementosColocados === 0"
+        (click)="onEnviar()">
+
+        <span class="barra-icono">
+          📤
+        </span>
+
+        <span class="barra-label">
+          Enviar
+        </span>
+
+        <span
+          class="barra-badge"
+          *ngIf="elementosColocados > 0">
+
+          {{ elementosColocados }}
+
+        </span>
+
       </button>
+
     </div>
 
   </div>
+
 </ion-content>

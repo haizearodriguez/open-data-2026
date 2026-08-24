@@ -6,6 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ChatbotComponent, ChatFinishedEvent } from 'src/app/components/chatbot/chatbot.component';
 import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
+import { MobiliarioService } from 'src/app/core/services/mobiliario.service';
 
 @Component({
   selector: 'app-chat',
@@ -24,7 +25,7 @@ export class ChatPage {
   private installPrompt: any = null;
   private static listenersRegistrados = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router,   private mobiliarioService: MobiliarioService) {
     if (!ChatPage.listenersRegistrados) {
       ChatPage.listenersRegistrados = true;
       window.addEventListener('beforeinstallprompt', (e) => {
@@ -40,8 +41,25 @@ export class ChatPage {
   }
 
   ionViewWillEnter(): void {
+    const state = history.state;
+
+    if (state?.nuevaPropuesta) {
+      this.mobiliarioService.limpiarPropuesta();
+
+      // Consumimos el estado para que no vuelva
+      // a ejecutarse accidentalmente.
+      history.replaceState(
+        {},
+        '',
+        window.location.href
+      );
+    }
+
     this.chatKey = 0;
-    setTimeout(() => { this.chatKey = Date.now(); }, 50);
+
+    setTimeout(() => {
+      this.chatKey = Date.now();
+    }, 50);
   }
 
   async instalarPwa(): Promise<void> {

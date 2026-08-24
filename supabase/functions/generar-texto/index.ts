@@ -403,19 +403,14 @@ INSTRUCCIONES:
           method: 'POST',
 
           headers: {
-            'Authorization':
-              `Bearer ${GROQ_API_KEY}`,
-
-            'Content-Type':
-              'application/json',
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
           },
 
-          signal:
-            controller.signal,
+          signal: controller.signal,
 
           body: JSON.stringify({
-            model:
-              'openai/gpt-oss-20b',
+            model: 'openai/gpt-oss-20b',
 
             messages: [
               {
@@ -424,12 +419,35 @@ INSTRUCCIONES:
               },
             ],
 
-            max_tokens: 400,
+            max_completion_tokens: 300,
 
-            temperature: 0.7,
+            temperature: 0.3,
+
+            include_reasoning: false,
+
 
             response_format: {
-              type: 'json_object',
+              type: 'json_schema',
+              json_schema: {
+                name: 'propuesta',
+                strict: true,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    titulo: {
+                      type: 'string',
+                    },
+                    descripcion: {
+                      type: 'string',
+                    },
+                  },
+                  required: [
+                    'titulo',
+                    'descripcion',
+                  ],
+                  additionalProperties: false,
+                },
+              },
             },
           }),
         }

@@ -40,9 +40,24 @@ export class MapaService {
   private marcadores: MarcadorRegistrado[] = [];
   private modoEliminar = false;
 
+  /** Indica que hay una propuesta abierta en la pantalla Tu propuesta. */
+  private propuestaEnEdicion = false;
+
   private barrios$: Observable<BarrioData> | null = null;
 
   constructor(private http: HttpClient) {}
+
+  public marcarPropuestaEnEdicion(): void {
+    this.propuestaEnEdicion = true;
+  }
+
+  public estaPropuestaEnEdicion(): boolean {
+    return this.propuestaEnEdicion;
+  }
+
+  public finalizarPropuesta(): void {
+    this.propuestaEnEdicion = false;
+  }
 
   public getBarrios(): Observable<BarrioData> {
     if (!this.barrios$) {
@@ -53,63 +68,117 @@ export class MapaService {
     return this.barrios$;
   }
 
-  public construirMapa(container: HTMLElement, centro: [number, number], zoom: number, barrio: string): void {
+  public construirMapa(
+    container: HTMLElement,
+    centro: [number, number],
+    zoom: number,
+    barrio: string
+  ): Promise<void> {
+
     try {
-      if (this.mapa) this.mapa.remove();
+      if (this.mapa) {
+        this.mapa.remove();
+      }
     } catch (e) {
       // mapa ya destruido previamente
     }
 
-    // Recrea Subjects para aislar cada sesión
-    this.mapaClickSource = new Subject<{ lng: number; lat: number }>();
-    this.mapaClick$ = this.mapaClickSource.asObservable();
-    this.ringsBarrioSource = new Subject<[number, number][][]>();
-    this.ringsBarrio$ = this.ringsBarrioSource.asObservable();
-
     this.marcadores = [];
     this.modoEliminar = false;
 
-    this.mapa = new maplibregl.Map({
-      container,
-      style: 'https://tiles.openfreemap.org/styles/positron',
-      center: centro,
-      zoom,
-      bearing: -10,
-      pitch: 30,
-    });
+    return new Promise<void>((resolve) => {
 
-    this.mapa.addControl(new maplibregl.NavigationControl(), 'top-right');
+      this.mapa = new maplibregl.Map({
+        container,
+        style: 'https://tiles.openfreemap.org/styles/positron',
+        center: centro,
+        zoom,
+        bearing: -10,
+        pitch: 30,
+      });
 
-    this.mapa.on('load', async () => {
-      try {
-        const dataOficial: BarrioData = await firstValueFrom(this.getBarrios());
-        const barrioEsri = dataOficial.features.find(f =>
-          f.attributes?.TEXTO?.toLowerCase() === barrio.toLowerCase()
-        );
+      this.mapa.addControl(
+        new maplibregl.NavigationControl(),
+        'top-right'
+      );
 
-        if (barrioEsri && barrioEsri.geometry?.rings) {
-          const ringsWgs84: [number, number][][] = barrioEsri.geometry.rings.map((ring: number[][]) =>
-            ring.map((coord: number[]) => convertirCoordenadaUtmAWgs84(coord[0], coord[1]))
+      this.mapa.on('load', async () => {
+        try {
+          const dataOficial: BarrioData =
+            await firstValueFrom(this.getBarrios());
+
+          const barrioEsri =
+            dataOficial.features.find(f =>
+              f.attributes?.TEXTO?.toLowerCase() === barrio.toLowerCase()
+            );
+
+          if (barrioEsri && barrioEsri.geometry?.rings) {
+
+            const ringsWgs84: [number, number][][] =
+              barrioEsri.geometry.rings.map(
+                (ring: number[][]) =>
+                  ring.map(
+                    (coord: number[]) =>
+                      convertirCoordenadaUtmAWgs84(
+                        coord[0],
+                        coord[1]
+                      )
+                  )
+              );
+
+            const barrioGeoJsonFeature = {
+              type: 'Feature',
+              properties: {
+                nombre: barrioEsri.attributes.TEXTO,
+                id_barrio: barrioEsri.attributes.BARRIO
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: ringsWgs84
+              }
+            };
+
+            this.cargarCapaBarrioResaltado({
+              type: 'FeatureCollection',
+              features: [barrioGeoJsonFeature]
+            });
+
+            this.cargarCapaEdificios3D(
+              barrioGeoJsonFeature
+            );
+
+            const bounds =
+              obtenerBoundsDePoligono(ringsWgs84);
+
+            this.mapa.fitBounds(
+              bounds,
+              {
+                padding: 50,
+                maxZoom: 16.5,
+                duration: 1500
+              }
+            );
+
+            this.ringsBarrioSource.next(
+              ringsWgs84
+            );
+          }
+
+          this.configurarEventos();
+
+        } catch (error) {
+
+          console.error(
+            'Error durante la carga del mapa:',
+            error
           );
 
-          const barrioGeoJsonFeature = {
-            type: 'Feature',
-            properties: { nombre: barrioEsri.attributes.TEXTO, id_barrio: barrioEsri.attributes.BARRIO },
-            geometry: { type: 'Polygon', coordinates: ringsWgs84 }
-          };
+        } finally {
 
-          this.cargarCapaBarrioResaltado({ type: 'FeatureCollection', features: [barrioGeoJsonFeature] });
-          this.cargarCapaEdificios3D(barrioGeoJsonFeature);
+          resolve();
 
-          const bounds = obtenerBoundsDePoligono(ringsWgs84);
-          this.mapa.fitBounds(bounds, { padding: 50, maxZoom: 16.5, duration: 1500 });
-          this.ringsBarrioSource.next(ringsWgs84);
         }
-
-        this.configurarEventos();
-      } catch (error) {
-        console.error('Error durante la carga del mapa:', error);
-      }
+      });
     });
   }
 
@@ -151,9 +220,10 @@ export class MapaService {
     lng: number,
     lat: number,
     categoria: CategoriaElemento,
-    onEliminar?: (id: string) => void
+    onEliminar?: (id: string) => void,
+    idExistente?: string
   ): string {
-    const id = `marcador-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const id = idExistente ?? `marcador-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     const elemento = document.createElement('div');
     elemento.style.fontSize = '28px';

@@ -13,7 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { IdiomaSelectorComponent } from 'src/app/components/idioma-selector/idioma-selector.component';
-import { SupabaseService } from 'src/app/core/services/supabase.service';
+import { FunctionsService } from 'src/app/core/services/functions.service';
 import {
   CATEGORIAS_ELEMENTOS,
   CategoriaElemento
@@ -70,7 +70,7 @@ export class FotoPage {
 
   constructor(
     private router: Router,
-    private supabaseService: SupabaseService
+    private functions: FunctionsService
   ) {}
 
   // --------------------------------------------------
@@ -102,19 +102,9 @@ export class FotoPage {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude
         };
-
-        console.log(
-          'GPS obtenido:',
-          this.coordenadas
-        );
       },
 
       (error) => {
-
-        console.warn(
-          'Error obteniendo GPS:',
-          error
-        );
 
         this.errorGps =
           'No se pudo obtener la ubicación — se usará el centro del mapa';
@@ -170,12 +160,12 @@ export class FotoPage {
     //
 
     const maxSize =
-      20 * 1024 * 1024;
+      10 * 1024 * 1024;
 
     if (file.size > maxSize) {
 
       this.error =
-        'La imagen es demasiado grande. Utiliza una foto de menos de 20 MB.';
+        'La imagen es demasiado grande. Utiliza una foto de menos de 10 MB.';
 
       return;
     }
@@ -219,16 +209,6 @@ export class FotoPage {
 
       this.fotoBase64 =
         partes[1];
-
-      console.log(
-        'Imagen preparada:',
-        {
-          tipo: file.type,
-          tamañoBytes: file.size,
-          base64Caracteres:
-            this.fotoBase64.length
-        }
-      );
     };
 
     reader.onerror = () => {
@@ -262,115 +242,15 @@ export class FotoPage {
 
     try {
 
-      const url =
-        `${this.supabaseService.getFunctionUrl()}/analizar-foto`;
+      const json = await this.functions.post<{
+        ok: boolean;
+        tipo?: string;
+        titulo?: string;
+        descripcion?: string;
+      }>('analizar-foto', { imagenBase64: this.fotoBase64 });
 
-      console.log(
-        'Enviando fotografía a:',
-        url
-      );
-
-      const res =
-        await fetch(
-          url,
-          {
-            method: 'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json',
-
-              'apikey':
-                this.supabaseService.getAnonKey(),
-
-              'Authorization':
-                `Bearer ${this.supabaseService.getAnonKey()}`
-            },
-
-            body: JSON.stringify({
-              imagenBase64:
-                this.fotoBase64
-            })
-          }
-        );
-
-      // ------------------------------------------------
-      // Intentamos leer JSON
-      // ------------------------------------------------
-
-      let json: any;
-
-      try {
-
-        json =
-          await res.json();
-
-      } catch (parseError) {
-
-        console.error(
-          'La Edge Function no devolvió JSON:',
-          parseError
-        );
-
-        throw new Error(
-          `Respuesta no válida del servidor. Código HTTP: ${res.status}`
-        );
-      }
-
-      // ------------------------------------------------
-      // MOSTRAR RESPUESTA COMPLETA
-      // ------------------------------------------------
-
-      console.error(
-        'RESPUESTA COMPLETA DE analizar-foto:',
-        {
-          status: res.status,
-          ok: res.ok,
-          json
-        }
-      );
-
-      // ------------------------------------------------
-      // Error de la Edge Function
-      // ------------------------------------------------
-
-      if (!res.ok || !json?.ok) {
-
-        const mensaje =
-          json?.error ??
-          'Error desconocido en analizar-foto';
-
-        const codigo =
-          json?.codigo ??
-          res.status;
-
-        const detalle =
-          json?.detalle ??
-          'Sin detalle proporcionado por el servidor.';
-
-        throw new Error(
-          `${mensaje} | Código: ${codigo} | Detalle: ${detalle}`
-        );
-      }
-
-      // ------------------------------------------------
-      // Comprobar respuesta de IA
-      // ------------------------------------------------
-
-      if (
-        typeof json.tipo !== 'string' ||
-        typeof json.titulo !== 'string' ||
-        typeof json.descripcion !== 'string'
-      ) {
-
-        console.error(
-          'Respuesta IA incompleta:',
-          json
-        );
-
-        throw new Error(
-          'La IA devolvió una respuesta incompleta.'
-        );
+      if (typeof json.tipo !== 'string' || typeof json.titulo !== 'string' || typeof json.descripcion !== 'string') {
+        throw new Error('La IA devolvió una respuesta incompleta.');
       }
 
       // ------------------------------------------------
@@ -383,11 +263,6 @@ export class FotoPage {
         );
 
       if (!categoria) {
-
-        console.error(
-          'La IA devolvió una categoría que no existe en Angular:',
-          json.tipo
-        );
 
         throw new Error(
           `La IA devolvió una categoría no reconocida: ${json.tipo}`
@@ -413,26 +288,11 @@ export class FotoPage {
       this.paso =
         'resultado';
 
-      console.log(
-        'Análisis IA correcto:',
-        {
-          tipo: json.tipo,
-          titulo: this.tituloGenerado,
-          descripcion:
-            this.descripcionGenerada
-        }
-      );
-
     } catch (error) {
 
       // ------------------------------------------------
       // ERROR COMPLETO
       // ------------------------------------------------
-
-      console.error(
-        'Error completo de analizar-foto:',
-        error
-      );
 
       this.error =
         error instanceof Error

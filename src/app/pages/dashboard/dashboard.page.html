@@ -1,14 +1,9 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <app-idioma-selector></app-idioma-selector>
-    </ion-buttons>
+    <ion-button slot="start" fill="clear" style="color:white;font-size:13px;font-weight:500;" routerLink="/chat">Volver</ion-button>
     <ion-title>Propuestas enviadas</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" style="color:white;font-size:13px;font-weight:500;" routerLink="/chat">
-        Nueva propuesta →
-      </ion-button>
-      <ion-button fill="clear" style="color:white;font-size:20px;" (click)="cargarDatos()">↺</ion-button>
+      <app-idioma-selector></app-idioma-selector>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -28,6 +23,8 @@
   <div *ngIf="datos && !cargando" class="dashboard">
 
     <div class="kpis-grid">
+      <ion-button slot="end" style="color:white;font-size:20px;" (click)="cargarDatos()">↺</ion-button>
+
       <div class="kpi-card">
         <p class="kpi-label">Propuestas enviadas</p>
         <p class="kpi-valor">{{ datos.total }}</p>
