@@ -419,11 +419,11 @@ INSTRUCCIONES:
               },
             ],
 
-            max_completion_tokens: 300,
-
+            max_completion_tokens: 800,
             temperature: 0.3,
 
-            include_reasoning: false,
+            reasoning_effort: 'low',
+            reasoning_format: 'hidden',
 
 
             response_format: {

@@ -450,10 +450,12 @@ export class MapaPage implements OnDestroy {
 
   onEnviar(): void {
 
-    if (
+    const propuesta =
       this.mobiliarioService
-        .obtenerPropuestaActual()
-        .length === 0
+        .obtenerPropuestaActual();
+
+    if (
+      propuesta.length === 0
     ) {
       return;
     }
@@ -463,18 +465,22 @@ export class MapaPage implements OnDestroy {
     this.mapaService
       .desactivarModoEliminar();
 
-    /*
-     * Marcamos la propuesta como abierta.
-     * Si Ionic recrea MapaPage al volver,
-     * podremos reconocer que venimos de resumen
-     * y no volver a aplicar la categoría de Chat.
-     */
     this.mapaService
       .marcarPropuestaEnEdicion();
 
-    this.router.navigate([
-      '/resumen'
-    ]);
+    console.log(
+      '📤 Abriendo resumen para NUEVA propuesta:',
+      propuesta
+    );
+
+    this.router.navigate(
+      ['/resumen'],
+      {
+        state: {
+          nuevaRevision: true
+        }
+      }
+    );
   }
 
   nuevaPropuesta(): void {

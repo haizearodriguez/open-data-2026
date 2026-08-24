@@ -157,6 +157,49 @@ export class ResumenPage
 
   ) {}
 
+  ionViewWillEnter(): void {
+
+    const state =
+      history.state;
+
+    console.log(
+      '📋 ResumenPage ionViewWillEnter',
+      state
+    );
+
+    /*
+    * Si venimos desde Mapa → Enviar,
+    * estamos entrando en el resumen de
+    * una propuesta nueva.
+    */
+    if (
+      state?.nuevaRevision === true
+    ) {
+
+      console.log(
+        '🆕 Nueva propuesta: reseteando ResumenPage'
+      );
+
+      this.reiniciarFormulario();
+
+      /*
+      * Consumimos el estado para que no vuelva
+      * a ejecutarse accidentalmente.
+      */
+      history.replaceState(
+        {},
+        '',
+        window.location.href
+      );
+
+      /*
+      * Cargamos los elementos actuales
+      * de MobiliarioService.
+      */
+      this.cargarPropuesta();
+    }
+  }
+
 
   // ==================================================
   // INICIO
@@ -215,7 +258,7 @@ export class ResumenPage
               categoria.tipo,
 
             barrio:
-              'Vitoria-Gasteiz',
+              state.barrio ?? '',
 
             coordenadas,
 
@@ -251,15 +294,24 @@ export class ResumenPage
       this.mobiliarioService
         .obtenerPropuestaActual();
 
+    console.log(
+      '📦 Elementos actuales:',
+      this.elementos
+    );
 
     this.barrio =
       this.elementos[0]?.barrio ?? '';
 
+    console.log(
+      '🏘️ Barrio del resumen:',
+      this.barrio
+    );
+
 
     /*
-     * Generamos título automático solamente
-     * si todavía no existe.
-     */
+    * Solo generamos un título automático
+    * si todavía no existe.
+    */
     if (
       !this.titulo &&
       this.elementos.length > 0
@@ -270,22 +322,17 @@ export class ResumenPage
         ...new Set(
 
           this.elementos.map(
-
             e =>
               this.getEtiqueta(e.tipo)
-
           )
 
         )
 
       ];
 
-
       this.titulo =
         `Solicitud de mejora en ${this.barrio}: ${tipos.join(', ')}`;
-
     }
-
   }
 
 
@@ -919,5 +966,56 @@ export class ResumenPage
     );
 
   }
+
+  private reiniciarFormulario(): void {
+
+  this.referencia =
+    null;
+
+  this.error =
+    '';
+
+  this.errorIa =
+    '';
+
+  this.erroresValidacion =
+    [];
+
+  this.enviando =
+    false;
+
+  this.generando =
+    false;
+
+  this.titulo =
+    '';
+
+  this.descripcion =
+    '';
+
+  this.desdeFoto =
+    false;
+
+  this.nombre =
+    '';
+
+  this.primerApellido =
+    '';
+
+  this.segundoApellido =
+    '';
+
+  this.dni =
+    '';
+
+  this.emailCiudadano =
+    '';
+
+  this.elementos =
+    [];
+
+  this.barrio =
+    '';
+}
 
 }

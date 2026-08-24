@@ -1,11 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as maplibregl from 'maplibre-gl';
-import { Observable, Subject, shareReplay, firstValueFrom } from 'rxjs';
+import { Observable, Subject, shareReplay, firstValueFrom} from 'rxjs';
 import { ArbolVitoriaGeoJSON, ArbolVitoriaFeature } from '../models/arbol-vitoria.model';
 import { BarrioData } from '../models/barrio.model';
 import { CategoriaElemento, TipoElemento } from '../models/mobiliario.model';
-import { convertirGeoJsonUtmAWgs84, esPuntoEnPoligono, convertirCoordenadaUtmAWgs84, obtenerBoundsDePoligono } from '../helpers/coordenadas.helper';
+import {
+  convertirGeoJsonUtmAWgs84,
+  esPuntoEnPoligono,
+  convertirCoordenadaUtmAWgs84,
+  convertirWgs84AUtm30,
+  obtenerBoundsDePoligono
+} from '../helpers/coordenadas.helper';
 
 const CAPAS_CATEGORIA: Record<string, { layerIds: string[]; sourceIds: string[] }> = {
   'zona-verde':          { layerIds: ['capa-arboles-vitoria'],  sourceIds: ['arbolado-vitoria-source'] },
@@ -180,6 +186,208 @@ export class MapaService {
         }
       });
     });
+  }
+
+  public async obtenerBarrioPorCoordenadas(
+    lng: number,
+    lat: number
+  ): Promise<string | null> {
+
+    if (
+      !Number.isFinite(lng) ||
+      !Number.isFinite(lat)
+    ) {
+      return null;
+    }
+
+    try {
+
+      console.log(
+        '📍 Buscando barrio para GPS:',
+        {
+          lng,
+          lat
+        }
+      );
+
+      // -----------------------------------------
+      // GPS WGS84 → UTM 30N
+      // -----------------------------------------
+
+      const [x, y] =
+        convertirWgs84AUtm30(
+          lng,
+          lat
+        );
+
+      console.log(
+        '📐 Coordenada UTM:',
+        {
+          x,
+          y
+        }
+      );
+
+      const data =
+        await firstValueFrom(
+          this.getBarrios()
+        );
+
+      // -----------------------------------------
+      // 1. BUSCAR BARRIO EXACTO
+      // -----------------------------------------
+
+      for (
+        const feature of data.features
+      ) {
+
+        if (
+          !feature.geometry?.rings
+        ) {
+          continue;
+        }
+
+        const estaDentro =
+          esPuntoEnPoligono(
+            [x, y],
+            feature.geometry.rings as [
+              number,
+              number
+            ][][]
+          );
+
+        if (estaDentro) {
+
+          const barrio =
+            feature.attributes?.TEXTO?.trim();
+
+          console.log(
+            '✅ Barrio exacto:',
+            barrio
+          );
+
+          return barrio || null;
+        }
+      }
+
+      // -----------------------------------------
+      // 2. NO ESTÁ DENTRO
+      //
+      // Buscar el barrio cuya frontera
+      // esté más cerca.
+      // -----------------------------------------
+
+      let barrioMasCercano:
+        string | null = null;
+
+      let distanciaMinima =
+        Infinity;
+
+      for (
+        const feature of data.features
+      ) {
+
+        if (
+          !feature.geometry?.rings
+        ) {
+          continue;
+        }
+
+        for (
+          const ring of feature.geometry.rings
+        ) {
+
+          for (
+            let i = 0;
+            i < ring.length - 1;
+            i++
+          ) {
+
+            const p1 =
+              ring[i];
+
+            const p2 =
+              ring[i + 1];
+
+            const distancia =
+              distanciaPuntoASegmentoUtm(
+                x,
+                y,
+                p1[0],
+                p1[1],
+                p2[0],
+                p2[1]
+              );
+
+            if (
+              distancia <
+              distanciaMinima
+            ) {
+
+              distanciaMinima =
+                distancia;
+
+              barrioMasCercano =
+                feature
+                  .attributes
+                  ?.TEXTO
+                  ?.trim() || null;
+            }
+          }
+        }
+      }
+
+      // -----------------------------------------
+      // 3. TOLERANCIA GPS
+      // -----------------------------------------
+
+      const toleranciaMetros = 20;
+
+      if (
+        barrioMasCercano &&
+        distanciaMinima <=
+        toleranciaMetros
+      ) {
+
+        console.warn(
+          '⚠️ GPS fuera del polígono exacto.'
+        );
+
+        console.log(
+          '🏘️ Barrio más cercano:',
+          barrioMasCercano
+        );
+
+        console.log(
+          '📏 Distancia:',
+          distanciaMinima.toFixed(2),
+          'metros'
+        );
+
+        return barrioMasCercano;
+      }
+
+      console.warn(
+        '⚠️ No se encontró ningún barrio.',
+        {
+          x,
+          y,
+          barrioMasCercano,
+          distanciaMinima
+        }
+      );
+
+      return null;
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error obteniendo barrio:',
+        error
+      );
+
+      return null;
+    }
   }
 
   // ─── Modo eliminación ─────────────────────────────────────────────────────────
@@ -357,3 +565,68 @@ export class MapaService {
 
   
 }
+
+  // ─── Distancia a Punto ──────────────────────────────────────────────────────────────
+
+  function distanciaPuntoASegmentoUtm(
+    px: number,
+    py: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): number {
+
+    const dx =
+      x2 - x1;
+
+    const dy =
+      y2 - y1;
+
+    if (
+      dx === 0 &&
+      dy === 0
+    ) {
+
+      return Math.sqrt(
+        Math.pow(px - x1, 2) +
+        Math.pow(py - y1, 2)
+      );
+    }
+
+    let t =
+      (
+        (px - x1) * dx +
+        (py - y1) * dy
+      ) /
+      (
+        dx * dx +
+        dy * dy
+      );
+
+    t =
+      Math.max(
+        0,
+        Math.min(1, t)
+      );
+
+    const puntoX =
+      x1 + t * dx;
+
+    const puntoY =
+      y1 + t * dy;
+
+    return Math.sqrt(
+      Math.pow(
+        px - puntoX,
+        2
+      ) +
+      Math.pow(
+        py - puntoY,
+        2
+      )
+    );
+  }
+
+
+

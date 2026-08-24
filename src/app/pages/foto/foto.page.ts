@@ -18,6 +18,8 @@ import {
   CATEGORIAS_ELEMENTOS,
   CategoriaElemento
 } from 'src/app/core/models/mobiliario.model';
+import { MapaService }
+  from 'src/app/core/services/mapa.service';
 
 @Component({
   selector: 'app-foto',
@@ -34,8 +36,7 @@ import {
     IonButtons,
     IonButton,
     IonSpinner,
-    IdiomaSelectorComponent
-  ]
+    IdiomaSelectorComponent  ]
 })
 export class FotoPage {
 
@@ -55,6 +56,7 @@ export class FotoPage {
     lng: number;
   } | null = null;
 
+  barrio = '';
   error = '';
   errorGps = '';
 
@@ -70,7 +72,8 @@ export class FotoPage {
 
   constructor(
     private router: Router,
-    private functions: FunctionsService
+    private functions: FunctionsService,
+    private mapaService: MapaService
   ) {}
 
   // --------------------------------------------------
@@ -85,7 +88,7 @@ export class FotoPage {
   // GPS
   // --------------------------------------------------
 
-  private obtenerGps(): void {
+ private obtenerGps(): void {
 
     if (!navigator.geolocation) {
       this.errorGps =
@@ -96,18 +99,52 @@ export class FotoPage {
 
     navigator.geolocation.getCurrentPosition(
 
-      (pos) => {
+      async (pos) => {
 
         this.coordenadas = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude
         };
+
+        console.log(
+          '📍 Coordenadas:',
+          this.coordenadas
+        );
+
+        try {
+
+          this.barrio =
+            await this.mapaService
+              .obtenerBarrioPorCoordenadas(
+                this.coordenadas.lng,
+                this.coordenadas.lat
+              ) ?? '';
+
+          console.log(
+            '🏘️ Barrio detectado:',
+            this.barrio
+          );
+
+        } catch (error) {
+
+          console.error(
+            '❌ Error obteniendo barrio:',
+            error
+          );
+
+          this.barrio = '';
+        }
       },
 
       (error) => {
 
+        console.error(
+          '❌ Error GPS:',
+          error
+        );
+
         this.errorGps =
-          'No se pudo obtener la ubicación — se usará el centro del mapa';
+          'No se ha podido obtener tu ubicación';
       },
 
       {
@@ -247,7 +284,10 @@ export class FotoPage {
         tipo?: string;
         titulo?: string;
         descripcion?: string;
-      }>('analizar-foto', { imagenBase64: this.fotoBase64 });
+      }>('analizar-foto', {
+        imagenBase64: this.fotoBase64,
+        barrio: this.barrio || undefined
+      });
 
       if (typeof json.tipo !== 'string' || typeof json.titulo !== 'string' || typeof json.descripcion !== 'string') {
         throw new Error('La IA devolvió una respuesta incompleta.');
@@ -363,6 +403,7 @@ export class FotoPage {
       ['/resumen'],
       {
         state: {
+
           desdeFoto: true,
 
           categoria:
@@ -373,6 +414,9 @@ export class FotoPage {
 
           descripcion:
             this.descripcionGenerada,
+
+          barrio:
+            this.barrio,
 
           coordenadas:
             this.coordenadas
