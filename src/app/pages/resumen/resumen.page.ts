@@ -162,10 +162,6 @@ export class ResumenPage
     const state =
       history.state;
 
-    console.log(
-      '📋 ResumenPage ionViewWillEnter',
-      state
-    );
 
     /*
     * Si venimos desde Mapa → Enviar,
@@ -176,9 +172,7 @@ export class ResumenPage
       state?.nuevaRevision === true
     ) {
 
-      console.log(
-        '🆕 Nueva propuesta: reseteando ResumenPage'
-      );
+
 
       this.reiniciarFormulario();
 
@@ -294,18 +288,10 @@ export class ResumenPage
       this.mobiliarioService
         .obtenerPropuestaActual();
 
-    console.log(
-      '📦 Elementos actuales:',
-      this.elementos
-    );
 
     this.barrio =
       this.elementos[0]?.barrio ?? '';
 
-    console.log(
-      '🏘️ Barrio del resumen:',
-      this.barrio
-    );
 
 
     /*

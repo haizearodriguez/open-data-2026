@@ -51,9 +51,8 @@ export class ChatbotComponent implements OnInit {
         });
       },
       error: () => {
-        this.barrios = ['Casco Viejo', 'Zabalgana', 'Salburua'];
         this.messages.push({
-          text: '¡Hola! Soy el asistente urbano de Vitoria-Gasteiz. ¿Cómo quieres reportar una incidencia?',
+          text: '¡Hola! Ha habido un error, intentalo de nuevo mas tarde.',
           sender: 'bot'
         });
       }
@@ -81,7 +80,7 @@ export class ChatbotComponent implements OnInit {
     this.selectedBarrio = barrio;
     this.messages.push({ text: barrio, sender: 'user' });
     this.step = 'categoria';
-    this.messages.push({ text: '¿Qué quieres añadir o reportar?', sender: 'bot' });
+    this.messages.push({ text: '¿Qué quieres reportar?', sender: 'bot' });
   }
 
   seleccionarCategoria(cat: CategoriaElemento): void {

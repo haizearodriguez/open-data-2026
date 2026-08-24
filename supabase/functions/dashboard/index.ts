@@ -178,7 +178,6 @@ serve(async (req) => {
       );
 
     if (error) {
-        console.error('ERROR SUPABASE DASHBOARD:', error);
 
         return new Response(
             JSON.stringify({
@@ -392,10 +391,7 @@ serve(async (req) => {
 
   } catch (error) {
 
-    console.error(
-      'Error en dashboard:',
-      error
-    );
+
 
     return new Response(
       JSON.stringify({

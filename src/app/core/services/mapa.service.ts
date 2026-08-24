@@ -174,11 +174,6 @@ export class MapaService {
 
         } catch (error) {
 
-          console.error(
-            'Error durante la carga del mapa:',
-            error
-          );
-
         } finally {
 
           resolve();
@@ -202,14 +197,6 @@ export class MapaService {
 
     try {
 
-      console.log(
-        '📍 Buscando barrio para GPS:',
-        {
-          lng,
-          lat
-        }
-      );
-
       // -----------------------------------------
       // GPS WGS84 → UTM 30N
       // -----------------------------------------
@@ -220,13 +207,6 @@ export class MapaService {
           lat
         );
 
-      console.log(
-        '📐 Coordenada UTM:',
-        {
-          x,
-          y
-        }
-      );
 
       const data =
         await firstValueFrom(
@@ -260,11 +240,6 @@ export class MapaService {
 
           const barrio =
             feature.attributes?.TEXTO?.trim();
-
-          console.log(
-            '✅ Barrio exacto:',
-            barrio
-          );
 
           return barrio || null;
         }
@@ -349,42 +324,13 @@ export class MapaService {
         toleranciaMetros
       ) {
 
-        console.warn(
-          '⚠️ GPS fuera del polígono exacto.'
-        );
-
-        console.log(
-          '🏘️ Barrio más cercano:',
-          barrioMasCercano
-        );
-
-        console.log(
-          '📏 Distancia:',
-          distanciaMinima.toFixed(2),
-          'metros'
-        );
-
         return barrioMasCercano;
       }
 
-      console.warn(
-        '⚠️ No se encontró ningún barrio.',
-        {
-          x,
-          y,
-          barrioMasCercano,
-          distanciaMinima
-        }
-      );
 
       return null;
 
     } catch (error) {
-
-      console.error(
-        '❌ Error obteniendo barrio:',
-        error
-      );
 
       return null;
     }
@@ -514,8 +460,6 @@ export class MapaService {
         esPuntoEnPoligono(arbol.geometry.coordinates, ringsPoligono)
       );
 
-      console.log(`[GIS] Árboles en ${nombreBarrio}: ${arbolesFiltrados.length}`);
-
       this.mapa.addSource('arbolado-vitoria-source', { type: 'geojson', data: { type: 'FeatureCollection', features: arbolesFiltrados } });
       this.mapa.addLayer({
         id: 'capa-arboles-vitoria', type: 'circle', source: 'arbolado-vitoria-source', minzoom: 13,
@@ -526,7 +470,6 @@ export class MapaService {
         }
       });
     } catch (error) {
-      console.error('Error al cargar la capa de arbolado:', error);
     }
   }
 
@@ -534,7 +477,6 @@ export class MapaService {
 
   private configurarEventos(): void {
     this.mapa.on('click', (evento: maplibregl.MapMouseEvent) => {
-      console.log('CLIC EN MAPA', evento.lngLat); // ← añade esto
       this.mapaClickSource.next({ lng: evento.lngLat.lng, lat: evento.lngLat.lat });
     });
 

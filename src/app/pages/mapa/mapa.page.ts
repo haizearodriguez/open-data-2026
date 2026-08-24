@@ -468,10 +468,6 @@ export class MapaPage implements OnDestroy {
     this.mapaService
       .marcarPropuestaEnEdicion();
 
-    console.log(
-      '📤 Abriendo resumen para NUEVA propuesta:',
-      propuesta
-    );
 
     this.router.navigate(
       ['/resumen'],

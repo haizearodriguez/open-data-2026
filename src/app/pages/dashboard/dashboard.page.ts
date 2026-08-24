@@ -27,11 +27,6 @@ export class DashboardPage implements OnInit {
     try {
       this.datos = await this.supabaseService.cargarDashboard();
     } catch (e: any) {
-      console.error(
-        'Error cargando dashboard:',
-        e
-      );
-
       this.error = true;
     } finally {
           this.cargando = false;

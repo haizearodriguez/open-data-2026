@@ -532,10 +532,8 @@ serve(async (req) => {
 
   } catch (error) {
 
-    console.error(
-      'Error en enviar-propuesta:',
-      error
-    );
+
+  
 
     return new Response(
       JSON.stringify({

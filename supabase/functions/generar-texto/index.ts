@@ -265,10 +265,6 @@ serve(async (req) => {
 
   if (!GROQ_API_KEY) {
 
-    console.error(
-      'GROQ_API_KEY no está configurada.'
-    );
-
     return respuestaJson(
       {
         ok: false,
@@ -466,11 +462,6 @@ INSTRUCCIONES:
 
       const errorText = await res.text();
 
-      console.error(
-        'ERROR GROQ:',
-        res.status,
-        errorText
-      );
 
       let detalleGroq = 'Error desconocido de Groq.';
 
@@ -511,10 +502,6 @@ INSTRUCCIONES:
       !contenido.trim()
     ) {
 
-      console.error(
-        'Respuesta Groq inesperada:',
-        JSON.stringify(data)
-      );
 
       return respuestaJson(
         {
@@ -541,11 +528,7 @@ INSTRUCCIONES:
 
     } catch (error) {
 
-      console.error(
-        'JSON generado por Groq no válido:',
-        contenido,
-        error
-      );
+
 
       return respuestaJson(
         {
@@ -565,10 +548,6 @@ INSTRUCCIONES:
       !respuestaIAValida(resultado)
     ) {
 
-      console.error(
-        'Respuesta IA no válida:',
-        resultado
-      );
 
       return respuestaJson(
         {
@@ -602,10 +581,6 @@ INSTRUCCIONES:
 
   } catch (error) {
 
-    console.error(
-      'Error en generar-texto:',
-      error
-    );
 
     if (
       error instanceof DOMException &&

@@ -106,11 +106,6 @@ export class FotoPage {
           lng: pos.coords.longitude
         };
 
-        console.log(
-          '📍 Coordenadas:',
-          this.coordenadas
-        );
-
         try {
 
           this.barrio =
@@ -120,29 +115,14 @@ export class FotoPage {
                 this.coordenadas.lat
               ) ?? '';
 
-          console.log(
-            '🏘️ Barrio detectado:',
-            this.barrio
-          );
 
         } catch (error) {
-
-          console.error(
-            '❌ Error obteniendo barrio:',
-            error
-          );
 
           this.barrio = '';
         }
       },
 
       (error) => {
-
-        console.error(
-          '❌ Error GPS:',
-          error
-        );
-
         this.errorGps =
           'No se ha podido obtener tu ubicación';
       },

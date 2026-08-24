@@ -203,9 +203,7 @@ serve(async (req) => {
 
     if (!GROQ_API_KEY) {
 
-      console.error(
-        'GROQ_API_KEY no está configurada.'
-      );
+
 
       return respuestaJson(
         {
@@ -346,9 +344,7 @@ No utilices bloques de código.
     // Groq
     // ------------------------------------------------
 
-    console.log(
-      'Enviando imagen a Groq...'
-    );
+
 
     const res =
       await fetch(
@@ -423,13 +419,6 @@ No utilices bloques de código.
       const detalle =
         await res.text();
 
-      console.error(
-        'ERROR GROQ:',
-        {
-          status: res.status,
-          detalle,
-        }
-      );
 
       return respuestaJson(
         {
@@ -452,20 +441,14 @@ No utilices bloques de código.
     const texto =
       data?.choices?.[0]?.message?.content;
 
-    console.log(
-      'RESPUESTA ORIGINAL DE GROQ:',
-      texto
-    );
+
 
     if (
       typeof texto !== 'string' ||
       !texto.trim()
     ) {
 
-      console.error(
-        'Groq no devolvió contenido:',
-        data
-      );
+
 
       return respuestaJson(
         {
@@ -493,13 +476,7 @@ No utilices bloques de código.
 
     } catch (error) {
 
-      console.error(
-        'ERROR PARSEANDO RESPUESTA DE GROQ:',
-        {
-          texto,
-          error,
-        }
-      );
+
 
       return respuestaJson(
         {
@@ -525,10 +502,7 @@ No utilices bloques de código.
       typeof resultado.descripcion !== 'string'
     ) {
 
-      console.error(
-        'Respuesta IA incompleta:',
-        resultado
-      );
+
 
       return respuestaJson(
         {
@@ -556,10 +530,7 @@ No utilices bloques de código.
 
     if (!categoria) {
 
-      console.error(
-        'Categoría desconocida devuelta por IA:',
-        resultado.tipo
-      );
+
 
       return respuestaJson(
         {
@@ -607,14 +578,6 @@ No utilices bloques de código.
     // Respuesta final
     // ------------------------------------------------
 
-    console.log(
-      'ANÁLISIS CORRECTO:',
-      {
-        tipo: categoria.tipo,
-        titulo,
-        descripcion,
-      }
-    );
 
     return respuestaJson({
       ok: true,
@@ -635,10 +598,7 @@ No utilices bloques de código.
 
   } catch (error) {
 
-    console.error(
-      'ERROR GENERAL analizar-foto:',
-      error
-    );
+
 
     return respuestaJson(
       {
